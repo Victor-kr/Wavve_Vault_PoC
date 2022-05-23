@@ -3,12 +3,12 @@
 #---------------------------------------------------------------
 #  Getting input parameters
 #---------------------------------------------------------------
-while getopts n:d:g:s: flag
+while getopts s:n:g:t: flag
 do
     case "${flag}" in
         s) server=${OPTARG};;
         n) username=${OPTARG};;
-		g) group=${OPTARG};;
+	g) group=${OPTARG};;
         t) validtime=${OPTARG};;
     esac
 done
