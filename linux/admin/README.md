@@ -8,7 +8,7 @@ $ chmod +x ./addUserToRemoteServer.sh
 $ chmod +x ./userManagementToServer.sh
 $ export VAULT_ADDR="http://172.31.44.220:8200"
 $ export VAULT_TOKEN="hvs.zpu3IwU6OyNBg7iDN8DbWb3K"
-$ ./userManagementToServer.sh -s <BASTION_SerVER_IP> -n <USER_NAME>
+$ ./userManagementToServer.sh -s <BASTION_SerVER_IP> -n <USER_NAME> -t "3m"
 ```
 
 ## [TODO] 
