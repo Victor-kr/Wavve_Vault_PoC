@@ -32,7 +32,7 @@ fi
 #---------------------------------------------------------------
 #  Vault login
 #---------------------------------------------------------------
-export VAULT_ADDR=${VAULT_ADDR:-http://172.31.37.26:8200}
+export VAULT_ADDR=${VAULT_ADDR:-http://172.31.44.220:8200}
 export VAULT_TOKEN=${VAULT_TOKEN:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K"}
 vault login $VAULT_TOKEN
 
