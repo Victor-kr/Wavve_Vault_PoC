@@ -8,5 +8,6 @@ $ mkdir go
 $ cd go
 $ git clone https://github.com/hashicorp/vault-ssh-helper.git
 $ source ~/.profile
-$ agent.go 파일을 수정 버전으로 교체
+$ 소스 파일의 agent.go 파일을 수정 버전(Wavve/plugins/vault-ssh-helper/agent.go)으로 교체
 $ 
+```
