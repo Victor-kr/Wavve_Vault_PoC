@@ -1,6 +1,6 @@
 {
   "plugin_name": "mysql-database-plugin",
-  "allowed_roles": "linuxacc",
+  "allowed_roles": "*",
   "connection_url": "{{username}}:{{password}}@tcp(172.31.37.26:3306)/",
   "username": "linux",
   "password": "PASSWORD"
