@@ -1,0 +1,1 @@
+{  "policy": "path \"ssh-client-signer/sign/ssh-ca-role\" { \n  capabilities = [\"update\"] \n} \n" }

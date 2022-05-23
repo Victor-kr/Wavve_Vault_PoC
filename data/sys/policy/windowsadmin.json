@@ -1,0 +1,1 @@
+{ "policy": "# Allows admins to read passwords.\npath \"systemcreds/*\" {\n  capabilities = [\"list\"]\n}\npath \"systemcreds/data/windows/*\" {\n  capabilities = [\"list\", \"read\"]\n}\n" }

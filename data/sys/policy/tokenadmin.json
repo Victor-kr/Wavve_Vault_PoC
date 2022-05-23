@@ -1,0 +1,1 @@
+{ "policy": "path \"auth/token/*\" {\n  capabilities = [\"create\", \"read\", \"update\", \"list\"]\n}\npath \"auth/token/lookup-accessor\" {\n  capabilities = [\"update\"]\n}\npath \"auth/token/revoke-accessor\" {\n  capabilities = [\"update\"]\n}\n" }

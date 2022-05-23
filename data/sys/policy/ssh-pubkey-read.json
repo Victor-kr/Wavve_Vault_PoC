@@ -1,0 +1,1 @@
+{ "policy": "path \"ssh-client-signer/config/ca\" { \n  capabilities = [\"read\"] \n} \n" }

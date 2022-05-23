@@ -1,0 +1,7 @@
+{
+    "cidr_list": "0.0.0.0/0",
+    "default_user": "ubuntu",
+    "allowed_user": "ubuntu",
+    "key_type": "otp",
+    "port": 22
+}
