@@ -48,23 +48,22 @@ vault write db/roles/acc_$username \
 #---------------------------------------------------------------
 # Add a temporary user to target server
 #---------------------------------------------------------------
-temp_user=$(vault read db/creds/acc_$username -format=json | jq .data.username |  tr -d '"')
-master_user_onetime_pass=$(vault write ssh-client-onetime-pass/creds/otp_$username_role ip=$server -format=json | jq .data.key |  tr -d '"') 
-sshpass -p $master_user_onetime_pass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $temp_user
- 
+tempuser=$(vault read db/creds/acc_$username -format=json | jq .data.username |  tr -d '"') 
+mastepass=$(vault write ssh-client-onetime-pass/creds/otp_key_role ip=$server -format=json | jq .data.key |  tr -d '"') 
+sshpass -p $mastepass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $tempuser
 
 #---------------------------------------------------------------
 # Set SSH Role  
 #---------------------------------------------------------------
-vault write ssh-client-onetime-pass/roles/otp_role_$temp_user \
+vault write ssh-client-onetime-pass/roles/otp_role_$tempuser \
      key_type=otp \
-     default_user=$temp_user \
-     allowed_user=$temp_user \
+     default_user=$tempuser \
+     allowed_user=$tempuser \
      key_bits=2048 \
      cidr_list=0.0.0.0/0
 	 
 	 
-echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_$temp_user ip=$server"
+echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_$tempuser ip=$server"
 echo "Try : ssh $temp_user@$server" 
 echo "Vaildation : $validtime" 
  
