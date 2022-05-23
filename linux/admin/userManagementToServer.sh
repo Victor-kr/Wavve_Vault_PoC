@@ -64,6 +64,6 @@ vault write ssh-client-onetime-pass/roles/otp_role_$tempuser \
 	 
 	 
 echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_$tempuser ip=$server"
-echo "Try : ssh $temp_user@$server" 
+echo "Try : ssh $tempuser@$server" 
 echo "Vaildation : $validtime" 
  
