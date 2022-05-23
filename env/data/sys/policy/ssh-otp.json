@@ -1,0 +1,1 @@
+{ "policy": "path \"ssh-client-onetime-pass/*\" {\n  capabilities = [ \"list\" ]\n}\n \npath \"ssh-client-onetime-pass/creds/*\" {\n  capabilities = [\"create\", \"read\", \"update\"]\n}\n" }
