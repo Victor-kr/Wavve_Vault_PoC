@@ -67,6 +67,14 @@ else
   echo "[Error] Failed to useradd command -  ${name}"
 fi
 
+#---------------------------------------------------------------
+#  Install JQ
+#---------------------------------------------------------------
+if which jq >/dev/null; then
+    echo "jq already installed"
+else
+    sudo apt install jq -y
+fi
 
 #---------------------------------------------------------------
 # Write user information to json file
