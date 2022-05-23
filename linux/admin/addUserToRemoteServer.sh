@@ -3,10 +3,11 @@
 #---------------------------------------------------------------
 #  Getting input parameters
 #---------------------------------------------------------------
-while getopts n:d:g:s: flag
+while getopts n:a:d:g:s: flag
 do
     case "${flag}" in
         n) name=${OPTARG};;
+	a) dbname=${OPTARG};;
         d) directory=${OPTARG};;
         g) group=${OPTARG};;
 	s) shell=${OPTARG};;
@@ -23,6 +24,12 @@ else
     echo '[Info] Starting add a new tempory user to server.'
 fi
 
+if [ -z "$dbname" ]; then
+    echo '[Error] Please put a user alias name to create a new temporary user to server.'
+    exit 1 
+fi
+
+
 if [ -z "$directory" ]; then
    directory="/home/${name}" 
 fi
@@ -33,6 +40,14 @@ fi
 
 if [ -z "$shell" ]; then
    shell="/bin/sh"
+fi
+
+#---------------------------------------------------------------
+#  Check user already exist
+#---------------------------------------------------------------
+if id "${name}" &>/dev/null; then
+  echo "[Info] User already exist -  ${name}"
+  exit 0
 fi
 
 #---------------------------------------------------------------
@@ -57,14 +72,15 @@ else
     echo "[Error] Failed to groupadd command -  ${group}"
     exit 1
   fi  
-fi  
+fi
 
 sudo useradd -d "${directory}" -m  -g "${group}" -s "${shell}" "${name}" # Add a new user to server
 res=$?
 if [ $res -eq 0 ]; then
   echo "[Info] Succeed to useradd -  ${name}"      
 else
-  echo "[Error] Failed to useradd command -  ${name}"
+  echo "[Error] Failed to useradd-  ${name}"
+  exit 1
 fi
 
 #---------------------------------------------------------------
@@ -101,7 +117,7 @@ fi
 if ! [ -f "${File}" ]; then
   sudo touch $File
   sudo chmod 777 $File
-  jq ".users[.users| length] |= . + {\"name\":\"${name}\",\"directory\":\"${directory}\",\"group\":\"${group}\",\"shell\":\"${shell}\"}"  $TemplateFile >> $File
+  jq ".users[.users| length] |= . + {\"name\":\"${name}\",\"dbname\":\"${dbname}\",\"directory\":\"${directory}\",\"group\":\"${group}\",\"shell\":\"${shell}\"}"  $TemplateFile >> $File
 else
   # Check whether user information already exists.
   checkItem=$(cat /usr/local/share/tempuser/user.json | jq -c ".users[] | select(.name | contains(\"${name}\"))")
@@ -110,7 +126,7 @@ else
     echo "[Info] Add a new information to file -  ${name}"
 
     sudo rm -rf $TemplateFile
-    jq ".users[.users| length] |= . + {\"name\":\"${name}\",\"directory\":\"${directory}\",\"group\":\"${group}\",\"shell\":\"${shell}\"}"  $File >> $TemplateFile
+    jq ".users[.users| length] |= . + {\"name\":\"${name}\",\"dbname\":\"${dbname}\",\"directory\":\"${directory}\",\"group\":\"${group}\",\"shell\":\"${shell}\"}"  $File >> $TemplateFile
     sudo rm -rf $File
     sudo cp $TemplateFile $File
   else   # If exist user inforamtion in the user file
