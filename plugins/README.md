@@ -1,5 +1,5 @@
 
-# Vault SSH Helper 수정
+# Vault SSH Helper 설치 - BastionHost 에서 수행
 
 GoInstall.pdf 를 확인하여 Go 빌드 환경을 구성하고 아래 과정을 통해 수정 플러그인을 빌드한다.
 
