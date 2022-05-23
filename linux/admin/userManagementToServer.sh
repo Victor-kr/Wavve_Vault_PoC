@@ -8,7 +8,7 @@ do
     case "${flag}" in
         s) server=${OPTARG};;
         n) username=${OPTARG};;
-		t) validtime=${OPTARG};;
+        t) validtime=${OPTARG};;
     esac
 done
 
