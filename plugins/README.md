@@ -3,7 +3,7 @@
 
 GoInstall.pdf 를 확인하여 Go 빌드 환경을 구성하고 아래 과정을 통해 수정 플러그인을 빌드한다.
 
-```
+```console
 $ mkdir go
 $ cd go
 $ git clone https://github.com/hashicorp/vault-ssh-helper.git
@@ -17,7 +17,7 @@ $ <agent.go 교체>
 // MySQL Driver 다운로드
 $ go get github.com/go-sql-driver/mysql
 
-# Go 디펜던시 다운로드 및 빌드
+// Go 디펜던시 다운로드 및 빌드
 $ go mod tidy
 $ go build
 
@@ -25,7 +25,7 @@ $ go build
 $ sudo mv vault-ssh-helper /usr/bin
 $ chmod +x /usr/bin/vault-ssh-helper
 
-// vault-ssh-helper 구성, ssh 마운트 포인트 확인
+// vault-ssh-helper 구성(vault_add 및 ssh 마운트 포인트를 구성에 맞게 설정)
 $ mkdir /root/vault
 $ tee /root/vault/config.hcl <<EOF
 vault_addr = "http://172.31.37.26:8200"
