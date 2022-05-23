@@ -3,6 +3,7 @@
  
 ```console
 $ sudo apt install jq
+$ sudo apt install sshpass
 $ chmod +x ./addUserToRemoteServer.sh
 $ chmod +x ./userManagementToServer.sh
 $ export VAULT_ADDR="http://172.31.44.220:8200"
