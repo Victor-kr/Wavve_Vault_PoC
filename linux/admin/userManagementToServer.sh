@@ -62,6 +62,23 @@ else
 fi
 
 #---------------------------------------------------------------
+# Creating a user name that people can't think of
+#---------------------------------------------------------------
+postfix=$(echo $RANDOM | md5sum | head -c 20; echo;)
+username="${username}_${postfix}"
+
+
+#---------------------------------------------------------------
+# Check whether temporary user if user exist
+#---------------------------------------------------------------
+echo "Checking whether a new temporary user exists already or not.."
+vault read db/roles/acc_$username &> /dev/null
+if [ $? == "0" ]; then
+	echo "  The corresponding username is no longer available. - username: $username"
+	exit 1
+fi
+
+#---------------------------------------------------------------
 #  Set Account Role
 #---------------------------------------------------------------
 echo "Creating a new account role.."
