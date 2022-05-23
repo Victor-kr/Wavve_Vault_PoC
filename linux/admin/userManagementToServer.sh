@@ -8,6 +8,7 @@ do
     case "${flag}" in
         s) server=${OPTARG};;
         n) username=${OPTARG};;
+		g) group=${OPTARG};;
         t) validtime=${OPTARG};;
     esac
 done
@@ -28,6 +29,11 @@ fi
 if [ -z "$validtime" ]; then
    validtime="5m"  
 fi
+
+if [ -z "$group" ]; then
+   group="$username"  
+fi
+
 
 #---------------------------------------------------------------
 #  Vault login
@@ -78,15 +84,15 @@ fi
 #---------------------------------------------------------------
 echo "Creating a temporary user to target server.."
 
-tempuser=$(vault read db/creds/acc_$username -format=json | jq .data.username |  tr -d '"') 
+dbuser=$(vault read db/creds/acc_$username -format=json | jq .data.username |  tr -d '"') 
 mastepass=$(vault write ssh-client-onetime-pass/creds/otp_key_role ip=$server -format=json | jq .data.key |  tr -d '"') 
-sshpass -p $mastepass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $tempuser  &> /dev/null
+sshpass -p $mastepass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -a $dbuser -g $group &> /dev/null
 
 if [ ! $? == "0" ]; then
-    echo "  failed to add a new temporary user to target server - server: $server, username: $tempuser"
+    echo "  failed to add a new temporary user to target server - server: $server, username: $username"
     exit 1
 else 
-    echo "  success to add a new temporary user to target server - server: $server, username: $tempuser"
+    echo "  success to add a new temporary user to target server - server: $server, username: $username"
 fi
 
 #---------------------------------------------------------------
@@ -94,22 +100,22 @@ fi
 #---------------------------------------------------------------
 echo "Creating a otp role for temporary user.."
 
-vault write ssh-client-onetime-pass/roles/otp_role_$tempuser \
+vault write ssh-client-onetime-pass/roles/otp_role_$username \
      key_type=otp \
-     default_user=$tempuser \
-     allowed_user=$tempuser \
+     default_user=$username \
+     allowed_user=$username \
      key_bits=2048 \
      cidr_list=0.0.0.0/0  &> /dev/null
 
 if [ ! $? == "0" ]; then
-    echo "  failed to create a otp role for temporary user - otp_role_$tempuser"
+    echo "  failed to create a otp role for temporary user - otp_role_$username"
     exit 1
 else 
-    echo "  success to create a otp role for temporary user - otp_role_$tempuser"
+    echo "  success to create a otp role for temporary user - otp_role_$username"
 fi
 
 echo ""
 echo ""	 
-echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_$tempuser ip=$server"
-echo "Try : ssh $tempuser@$server" 
+echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_$username ip=$server"
+echo "Try : ssh $username@$server" 
 echo "Vaildation : $validtime"
