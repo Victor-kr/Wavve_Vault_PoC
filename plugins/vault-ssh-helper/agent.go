@@ -7,13 +7,13 @@ import (
 	"net"
 	"os"
 	"strings"
-	"bufio"  
-	"encoding/json" 
+	"bufio"
+	"encoding/json"
 	"io/ioutil"
-	"database/sql" 
+	"database/sql"
 
-	"github.com/hashicorp/vault/api" 
-	_ "github.com/go-sql-driver/mysql"	
+	"github.com/hashicorp/vault/api"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 
@@ -29,6 +29,7 @@ type Users struct {
 
 type User struct {
 	Name string `json:"name"`
+	DBName string `json:"dbname"`
 	Directory string `json:"directory"`
 	Group string `json:group`
 	Shell string `json:shell`
@@ -89,7 +90,7 @@ func testActiveTempUser(testUser string) bool {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	
+
 	isTempUser := false
 	isExistUser := false
 	isExpired := true
@@ -97,17 +98,19 @@ func testActiveTempUser(testUser string) bool {
 	//존재하는 유저인가?
 	userList := readEtcPasswd(userFile)
 	c := check(userList, testUser)
-	if c == true {  
+	if c == true {
 		isExistUser = true
 	}
 
 	//임시 유저인가?
 	userJson := readUsers(userJsonFile)
 	var users Users
+	var dbName string
 	json.Unmarshal(userJson, &users)
 	for i := range users.Users {
 		if(users.Users[i].Name == testUser) {
 			isTempUser = true
+			dbName = users.Users[i].DBName
 			break
 		}
 	}
@@ -116,7 +119,7 @@ func testActiveTempUser(testUser string) bool {
 	for rows.Next() {
 		var userName string
 		rows.Scan(&userName)
-		if(userName == testUser) {
+		if(userName == dbName) {
 			isExpired = false
 			break
 		}
@@ -147,9 +150,6 @@ func testActiveTempUser(testUser string) bool {
 
 	return true
 }
- 
-
-
 
 
 //////////////////////////////////////////////////////
