@@ -29,7 +29,7 @@ type Users struct {
 
 type User struct {
 	Name string `json:"name"`
-	DBName string `json:"dbname"`
+	DBUserName string `json:"dbname"`
 	Directory string `json:"directory"`
 	Group string `json:group`
 	Shell string `json:shell`
@@ -105,21 +105,21 @@ func testActiveTempUser(testUser string) bool {
 	//임시 유저인가?
 	userJson := readUsers(userJsonFile)
 	var users Users
-	var dbName string
+	var dbUserName string
 	json.Unmarshal(userJson, &users)
 	for i := range users.Users {
 		if(users.Users[i].Name == testUser) {
 			isTempUser = true
-			dbName = users.Users[i].DBName
+			dbUserName = users.Users[i].DBUserName
 			break
 		}
 	}
 
 	//현재 만료되지 않은 유저인가?
 	for rows.Next() {
-		var userName string
-		rows.Scan(&userName)
-		if(userName == dbName) {
+		var dbQuriedUserName string
+		rows.Scan(&dbQuriedUserName)
+		if(dbQuriedUserName == dbUserName) {
 			isExpired = false
 			break
 		}
