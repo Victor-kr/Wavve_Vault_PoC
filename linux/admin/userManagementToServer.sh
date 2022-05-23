@@ -1,6 +1,5 @@
 #!/bin/bash
  
-
 #---------------------------------------------------------------
 #  Getting input parameters
 #---------------------------------------------------------------
@@ -44,7 +43,6 @@ else
     echo "  vault status : ok"
 fi
 
-
 echo "Checking login to vault.."
 vault login -method=userpass \
     username=otpadmin \
@@ -75,7 +73,6 @@ else
     echo "  success to create a new account role - rolename : db/roles/acc_$username"
 fi
 
-
 #---------------------------------------------------------------
 # Add a temporary user to target server
 #---------------------------------------------------------------
@@ -91,7 +88,6 @@ if [ ! $? == "0" ]; then
 else 
     echo "  success to add a new temporary user to target server - server: $server, username: $tempuser"
 fi
-
 
 #---------------------------------------------------------------
 # Set SSH Role  
@@ -112,11 +108,8 @@ else
     echo "  success to create a otp role for temporary user - otp_role_$tempuser"
 fi
 
-
 echo ""
 echo ""	 
 echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_$tempuser ip=$server"
 echo "Try : ssh $tempuser@$server" 
-echo "Vaildation : $validtime" 
- 
-
+echo "Vaildation : $validtime"
