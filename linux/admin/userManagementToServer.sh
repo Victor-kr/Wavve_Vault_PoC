@@ -30,12 +30,11 @@ if [ -z "$validtime" ]; then
 fi
 
 #---------------------------------------------------------------
-#  Vault login > 파라미터 빼야함
+#  Vault login
 #---------------------------------------------------------------
-export VAULT_ADDR="http://172.31.37.26:8200"
-vault login hvs.zpu3IwU6OyNBg7iDN8DbWb3K
-
-
+export VAULT_ADDR=${VAULT_ADDR:-http://172.31.37.26:8200}
+export VAULT_TOKEN=${VAULT_TOKEN:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K"}
+vault login $VAULT_TOKEN
 
 #---------------------------------------------------------------
 #  Set Account Role
