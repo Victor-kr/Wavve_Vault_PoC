@@ -1,16 +1,49 @@
 #!/bin/bash
 
+
+#---------------------------------------------------------------
+# Functions
+#---------------------------------------------------------------
+function vault-put() {
+  path=$1
+  shift
+  payload="$*"
+
+  set +e
+    curl \
+      --request POST \
+      --header "X-Vault-Token: ${VAULT_TOKEN}" \
+      --data @"${payload}" \
+      "${VAULT_ADDR}/v1/${path}"
+  set -e
+}
+
+function vault-get() {
+  path="$1"
+  shift
+  res=$(curl \
+      --silent \
+      --request GET \
+      --header 'Accept: application/json'  \
+      --header "X-Vault-Token: ${VAULT_TOKEN}" \
+      "${VAULT_ADDR}/v1/${path}" | jq .data.data)
+  echo $res
+}
+
 #---------------------------------------------------------------
 #  Getting input parameters
 #---------------------------------------------------------------
-while getopts n:a:d:g:s: flag
+while getopts n:t:v:d:g:s:r:k: flag
 do
     case "${flag}" in
         n) name=${OPTARG};;
-	a) dbname=${OPTARG};;
+	      v) server=${OPTARG};;
+        t) duration=${OPTARG};;
         d) directory=${OPTARG};;
         g) group=${OPTARG};;
-	s) shell=${OPTARG};;
+	      s) shell=${OPTARG};; 
+        r) vault_addr=${OPTARG};; 
+        k) vault_token=${OPTARG};; 
     esac
 done
 
@@ -24,11 +57,24 @@ else
     echo '[Info] Starting add a new tempory user to server.'
 fi
 
-if [ -z "$dbname" ]; then
-    echo '[Error] Please put a user alias name to create a new temporary user to server.'
+if [ -z "$server" ]; then
+    echo '[Error] Please put a server host information.'
     exit 1 
 fi
 
+if [ -z "$vault_addr" ]; then
+    echo '[Error] Please put vault address information.'
+    exit 1 
+fi
+
+if [ -z "$vault_token" ]; then
+    echo '[Error] Please put vault token information.'
+    exit 1 
+fi
+
+if [ -z "$duration" ]; then
+    duration=
+fi
 
 if [ -z "$directory" ]; then
    directory="/home/${name}" 
@@ -42,6 +88,29 @@ if [ -z "$shell" ]; then
    shell="/bin/sh"
 fi
 
+export VAULT_ADDR=${vault_addr}
+export VAULT_TOKEN=${vault_token}
+
+#---------------------------------------------------------------
+#  Check jq & at command installed
+#--------------------------------------------------------------- 
+programs="jq at curl"
+for p in programs; do
+  if which jq >/dev/null; then
+    echo "${p} already installed"
+  else
+    if command -v apt >/dev/null; then
+      sudo apt update 
+      sudo apt install $p -y
+    elif command -v apt-get >/dev/null; then
+      sudo apt-get update 
+      sudo apt-get install $p -y
+    elif command -v yum >/dev/null; then
+      sudo yum install  $p -y 
+    fi
+  fi
+done
+
 #---------------------------------------------------------------
 #  Check user already exist
 #---------------------------------------------------------------
@@ -49,6 +118,16 @@ if id "${name}" &>/dev/null; then
   echo "[Info] User already exist -  ${name}"
   exit 0
 fi
+
+
+#---------------------------------------------------------------
+# Check already a published user
+#---------------------------------------------------------------
+#res=$(vault-get "tempusers/data/linux/${server}/${name}")  
+#if [ "$res" == "" ]; then
+#  echo "[Info] User name already used -  ${name}"
+#  exit 0
+#fi
 
 #---------------------------------------------------------------
 #  Creating user and group
@@ -84,60 +163,28 @@ else
 fi
 
 #---------------------------------------------------------------
-#  Install JQ
+# Delete temporary user after period 
+# [TODO]
+#    otp role 삭제
+#    secret 삭제
 #---------------------------------------------------------------
-if which jq >/dev/null; then
-    echo "jq already installed"
-else
-    sudo apt install jq -y
-fi
-
-#---------------------------------------------------------------
-# Write user information to json file
-#---------------------------------------------------------------
-Dir="/usr/local/share/tempuser"
-File="${Dir}/user.json"
-TemplateFile="${Dir}/user_temp.json"
-
-if ! [ -d "${Dir}" ]; then
-  sudo  mkdir -p $Dir
-  sudo chmod 777 $Dir
-fi
-
-if ! [ -f "${TemplateFile}" ]; then
-  sudo cat <<EOF > ${TemplateFile}
-{
-  "users": [
-  ]
-}
+cat <<EOF | at now + ${duration} minutes
+  sudo userdel -f -r $name
 EOF
-  sudo chmod 777 $TemplateFile
-fi
 
-if ! [ -f "${File}" ]; then
-  sudo touch $File
-  sudo chmod 777 $File
-  jq ".users[.users| length] |= . + {\"name\":\"${name}\",\"dbname\":\"${dbname}\",\"directory\":\"${directory}\",\"group\":\"${group}\",\"shell\":\"${shell}\"}"  $TemplateFile >> $File
-else
-  # Check whether user information already exists.
-  checkItem=$(cat /usr/local/share/tempuser/user.json | jq -c ".users[] | select(.name | contains(\"${name}\"))")
+#---------------------------------------------------------------
+# Write user information to vault
+#---------------------------------------------------------------
+#jq -n --arg name "${name}" \
+#--arg directory "${directory}"  \
+#--arg group "${group}"  \
+#--arg shell "${shell}" \
+#'{"data": [{"name": $ARGS.named["name"],"directory": $ARGS.named["directory"],"group": $ARGS.named["group"],"shell": $ARGS.named["shell"]}]}' > "/tmp/userinfo_${name}.json"
 
-  if [ -z "${checkItem}" ]; then # If not exist user inforamtion in the user file
-    echo "[Info] Add a new information to file -  ${name}"
-
-    sudo rm -rf $TemplateFile
-    jq ".users[.users| length] |= . + {\"name\":\"${name}\",\"dbname\":\"${dbname}\",\"directory\":\"${directory}\",\"group\":\"${group}\",\"shell\":\"${shell}\"}"  $File >> $TemplateFile
-    sudo rm -rf $File
-    sudo cp $TemplateFile $File
-  else   # If exist user inforamtion in the user file
-    echo "[Error] There are user information already in the user.json file -  ${name}"
-    exit 1
-  fi
-fi
+#vault-put  "tempusers/data/linux/${server}/${name}" "/tmp/user_${name}.json"
 
 #---------------------------------------------------------------
 # Print Result
 #---------------------------------------------------------------
 id "$name"
 getent group $group
-cat $File

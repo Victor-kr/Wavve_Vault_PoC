@@ -28,10 +28,11 @@ pushd data >/dev/null
 provision sys/auth
 provision sys/mounts
 provision sys/policy
-provision db/config
-provision db/roles
+#provision db/config
+#provision db/roles
 provision ssh-client-onetime-pass/roles
 provision auth/userpass/users
+provision auth/approle/role
 provision ssh-client-signer/config
 provision ssh-client-signer/roles
 popd > /dev/null

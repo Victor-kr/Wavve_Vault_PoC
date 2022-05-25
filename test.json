@@ -1,0 +1,10 @@
+{
+  "data": [
+    {
+      "name": "0.0.0.0/0",
+      "directory": "ubuntu",
+      "group": "ubuntu",
+      "shell": "otp"
+    }
+  ]
+}
