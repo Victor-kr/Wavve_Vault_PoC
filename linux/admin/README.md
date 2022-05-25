@@ -8,11 +8,9 @@ $ chmod +x ./addUserToRemoteServer.sh
 $ chmod +x ./userManagementToServer.sh
 $ export VAULT_ADDR="http://172.31.44.220:8200"
 $ export VAULT_TOKEN="hvs.zpu3IwU6OyNBg7iDN8DbWb3K"
-$ ./userManagementToServer.sh -s <BASTION_SerVER_IP> -n <USER_NAME>
+$ ./userManagementToServer.sh -s <BASTION_SERVER_IP> -n <USER_NAME> -t <TIME>
+
+ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5m'
+ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5h 10m'
+ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '2d 10h 10m'
 ```
-
-## [TODO] 
-
-- ssh 롤 계속 생성하는게 아니라 ssh role 수정하는 형식? 가능한가?
-- user.json 이 계속 사이즈가 커질건데 이건 어떻게?
-- vault api 를 curl 로 수정 
