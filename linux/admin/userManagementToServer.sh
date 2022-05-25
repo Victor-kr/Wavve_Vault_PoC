@@ -204,6 +204,7 @@ echo "Creating a temporary user to target server.."
 #   s) shell (optional)
 #   r) vault_addr
 #   k) vault_token
+
 masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
 sshpass -p $masterpass scp -pv $PWD/cleanResources.sh ubuntu@$server:/home/ubuntu/cleanResources.sh
 
@@ -222,4 +223,4 @@ echo ""
 echo ""	 
 echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_$username ip=$server"
 echo "Try : ssh $username@$server" 
-echo "Vaildation : $validtime"
+echo "Vaildation : $duration"

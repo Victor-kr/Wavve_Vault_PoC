@@ -21,13 +21,12 @@ function vault-put-secret() {
 function vault-get-secret() {
   path="$1"
   shift
-  res=$(curl \
+  curl \
       --silent \
       --request GET \
       --header 'Accept: application/json'  \
       --header "X-Vault-Token: ${VAULT_TOKEN}" \
-      "${VAULT_ADDR}/v1/${path}" | jq .data.data)
-  echo $res
+      "${VAULT_ADDR}/v1/${path}" | jq .data.data
 }
 
 function vault-delete-secret() {
@@ -142,16 +141,7 @@ if id "${name}" &>/dev/null; then
   echo "[Info] User already exist -  ${name}"
   exit 0
 fi
-
-
-#---------------------------------------------------------------
-# Check already a published user
-#---------------------------------------------------------------
-res=$(vault-get-secret "tempusers/data/linux/${server}/users/${name}")  
-if [ "$res" == "" ]; then
-  echo "[Info] User name already used -  ${name}"
-  exit 1
-fi
+ 
 
 #---------------------------------------------------------------
 #  Creating user and group
@@ -206,7 +196,7 @@ vault-put-secret  "tempusers/data/linux/${server}/users/${name}" "/tmp/userinfo_
 #---------------------------------------------------------------
 cat <<EOF | at now + ${duration} minutes 
   sudo chmod +x /home/ubuntu/cleanResources.sh
-  /home/ubuntu/cleanResources.sh  -n "${name}" -s "${server}"
+  /home/ubuntu/cleanResources.sh  -n "${name}" -s "${server}" -r "${VAULT_ADDR}" -k "${VAULT_TOKEN}"
 EOF
 
 #---------------------------------------------------------------
