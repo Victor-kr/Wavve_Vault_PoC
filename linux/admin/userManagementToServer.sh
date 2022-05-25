@@ -65,6 +65,17 @@ function vault-get-ssh-cred() {
 function vault-approle-login() {
   rolename="$1"
   shift
+  token_ttl="$1"
+  shift
+  token_max_ttl="$*"  
+
+  payload="/tmp/app_role_${rolename}.json" 
+  jq -n \
+    --arg token_ttl "$token_ttl" \
+    --arg token_max_ttl "$token_max_ttl" \
+    '{"token_ttl": $ARGS.named["token_ttl"],"token_max_ttl": $ARGS.named["token_max_ttl"],"token_policies": ["ssh-otp"],"period": 0, "bind_secret_id": true}' > "${payload}"
+    
+  vault-provision "auth/approle/role/${rolename}" "${payload}"
 
   role_id=$(vault-get-role-id "${rolename}"  | tr -d '"')
   secret_id=$(vault-get-role-secret-id "${rolename}"  | tr -d '"')
@@ -84,6 +95,18 @@ function vault-approle-login() {
     "${VAULT_ADDR}/v1/auth/approle/login" | jq .auth.client_token | tr -d '"'
  
    sudo rm -rf  "${payload}"
+}
+
+function vault-delete-role() {
+  rolepath="$1"
+  shift
+
+  curl \
+      --silent \
+      --request DELETE \
+      --header 'Accept: application/json'  \
+      --header "X-Vault-Token: ${VAULT_TOKEN}" \
+      "${VAULT_ADDR}/v1/${rolepath}"
 }
 
 t2m() {
@@ -120,7 +143,7 @@ if [ -z "$username" ]; then
 fi
 
 if [ -z "$duration" ]; then
-   duration="5"
+   duration=5
 else
    duration=$(t2m "$duration")
 fi
@@ -132,8 +155,10 @@ fi
 #---------------------------------------------------------------
 #  Vault login
 #---------------------------------------------------------------
+approle_duration=$(( duration + 10 )) 
+approle_duration="${approle_duration}m"
 export VAULT_ADDR=${VAULT_ADDR:-http://172.31.44.220:8200}
-export APP_TOKEN=$(vault-approle-login "otprole")
+export APP_TOKEN=$(vault-approle-login "$username" "${approle_duration}")
 export VAULT_TOKEN=$APP_TOKEN
 
 echo "vault token : $VAULT_TOKEN"
@@ -184,6 +209,7 @@ sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer
 
 if [ ! $? == "0" ]; then
     echo "  failed to add a new temporary user to target server - server: $server, username: $username"
+    vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${username}"
     exit 1
 else 
     echo "  success to add a new temporary user to target server - server: $server, username: $username"

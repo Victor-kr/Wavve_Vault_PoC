@@ -4,7 +4,7 @@
 #---------------------------------------------------------------
 # Functions
 #---------------------------------------------------------------
-function vault-put() {
+function vault-put-secret() {
   path=$1
   shift
   payload="$*"
@@ -18,7 +18,7 @@ function vault-put() {
   set -e
 }
 
-function vault-get() {
+function vault-get-secret() {
   path="$1"
   shift
   res=$(curl \
@@ -29,6 +29,30 @@ function vault-get() {
       "${VAULT_ADDR}/v1/${path}" | jq .data.data)
   echo $res
 }
+
+function vault-delete-secret() {
+  path="$1"
+  shift
+  curl \
+      --silent \
+      --request GET \
+      --header 'Accept: application/json'  \
+      --header "X-Vault-Token: ${VAULT_TOKEN}" \
+      "${VAULT_ADDR}/v1/${path}"
+}
+
+function vault-delete-role() {
+  rolepath="$1"
+  shift
+
+  curl \
+      --silent \
+      --request DELETE \
+      --header 'Accept: application/json'  \
+      --header "X-Vault-Token: ${VAULT_TOKEN}" \
+      "${VAULT_ADDR}/v1/${rolepath}"
+}
+
 
 #---------------------------------------------------------------
 #  Getting input parameters
@@ -123,11 +147,11 @@ fi
 #---------------------------------------------------------------
 # Check already a published user
 #---------------------------------------------------------------
-#res=$(vault-get "tempusers/data/linux/${server}/${name}")  
-#if [ "$res" == "" ]; then
-#  echo "[Info] User name already used -  ${name}"
-#  exit 0
-#fi
+res=$(vault-get-secret "tempusers/data/linux/${server}/users/${name}")  
+if [ "$res" == "" ]; then
+  echo "[Info] User name already used -  ${name}"
+  exit 1
+fi
 
 #---------------------------------------------------------------
 #  Creating user and group
@@ -170,21 +194,24 @@ fi
 #---------------------------------------------------------------
 cat <<EOF | at now + ${duration} minutes
   sudo userdel -f -r $name
+  vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${name}"
+  vault-delete-secret "tempusers/data/linux/${server}/users/${name}"
 EOF
 
 #---------------------------------------------------------------
 # Write user information to vault
 #---------------------------------------------------------------
-#jq -n --arg name "${name}" \
-#--arg directory "${directory}"  \
-#--arg group "${group}"  \
-#--arg shell "${shell}" \
-#'{"data": [{"name": $ARGS.named["name"],"directory": $ARGS.named["directory"],"group": $ARGS.named["group"],"shell": $ARGS.named["shell"]}]}' > "/tmp/userinfo_${name}.json"
+jq -n --arg name "${name}" \
+--arg directory "${directory}"  \
+--arg group "${group}"  \
+--arg shell "${shell}" \
+'{"data": [{"name": $ARGS.named["name"],"directory": $ARGS.named["directory"],"group": $ARGS.named["group"],"shell": $ARGS.named["shell"]}]}' > "/tmp/userinfo_${name}.json"
 
-#vault-put  "tempusers/data/linux/${server}/${name}" "/tmp/user_${name}.json"
+vault-put-secret  "tempusers/data/linux/${server}/users/${name}" "/tmp/userinfo_${name}.json"
 
 #---------------------------------------------------------------
 # Print Result
 #---------------------------------------------------------------
 id "$name"
 getent group $group
+atq
