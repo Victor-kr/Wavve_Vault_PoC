@@ -35,7 +35,7 @@ function vault-delete-secret() {
   shift
   curl \
       --silent \
-      --request GET \
+      --request DELETE \
       --header 'Accept: application/json'  \
       --header "X-Vault-Token: ${VAULT_TOKEN}" \
       "${VAULT_ADDR}/v1/${path}"
@@ -187,18 +187,6 @@ else
 fi
 
 #---------------------------------------------------------------
-# Delete temporary user after period 
-# [TODO]
-#    otp role 삭제
-#    secret 삭제
-#---------------------------------------------------------------
-cat <<EOF | at now + ${duration} minutes
-  sudo userdel -f -r $name
-  vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${name}"
-  vault-delete-secret "tempusers/data/linux/${server}/users/${name}"
-EOF
-
-#---------------------------------------------------------------
 # Write user information to vault
 #---------------------------------------------------------------
 jq -n --arg name "${name}" \
@@ -208,6 +196,19 @@ jq -n --arg name "${name}" \
 '{"data": [{"name": $ARGS.named["name"],"directory": $ARGS.named["directory"],"group": $ARGS.named["group"],"shell": $ARGS.named["shell"]}]}' > "/tmp/userinfo_${name}.json"
 
 vault-put-secret  "tempusers/data/linux/${server}/users/${name}" "/tmp/userinfo_${name}.json"
+
+
+#---------------------------------------------------------------
+# Delete temporary user after period 
+# [TODO]
+#    otp role 삭제
+#    secret 삭제
+#---------------------------------------------------------------
+cat <<EOF | at now + ${duration} minutes
+  sudo userdel -f -r $name
+  vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${name}"
+  vault-delete-secret "tempusers/metadata/linux/${server}/users/${name}"
+EOF
 
 #---------------------------------------------------------------
 # Print Result
