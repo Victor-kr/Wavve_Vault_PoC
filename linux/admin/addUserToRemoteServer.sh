@@ -97,7 +97,7 @@ if [ -z "$vault_token" ]; then
 fi
 
 if [ -z "$duration" ]; then
-    duration=
+    duration=60
 fi
 
 if [ -z "$directory" ]; then
@@ -204,10 +204,9 @@ vault-put-secret  "tempusers/data/linux/${server}/users/${name}" "/tmp/userinfo_
 #    otp role 삭제
 #    secret 삭제
 #---------------------------------------------------------------
-cat <<EOF | at now + ${duration} minutes
-  sudo userdel -f -r $name
-  vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${name}"
-  vault-delete-secret "tempusers/metadata/linux/${server}/users/${name}"
+cat <<EOF | at now + ${duration} minutes 
+  sudo chmod +x /home/ubuntu/cleanResources.sh
+  /home/ubuntu/cleanResources.sh  -n "${name}" -s "${server}"
 EOF
 
 #---------------------------------------------------------------
