@@ -111,8 +111,8 @@ if [ -z "$shell" ]; then
    shell="/bin/sh"
 fi
 
-export VAULT_ADDR=${vault_addr}
-export VAULT_TOKEN=${vault_token}
+export VAULT_ADDR="${vault_addr:-http://172.31.44.220:8200}"
+export VAULT_TOKEN="${vault_token:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K}"
 
 #---------------------------------------------------------------
 #  Check jq & at command installed

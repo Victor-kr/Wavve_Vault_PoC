@@ -15,30 +15,6 @@ function vault-provision() {
     "${VAULT_ADDR}/v1/${path}" 
 }
 
-function vault-get-role-id() {
-  rolename="$1"
-  shift
-  res=$(curl \
-      --silent \
-      --request GET \
-      --header 'Accept: application/json'  \
-      --header "X-Vault-Token: ${VAULT_TOKEN}" \
-      "${VAULT_ADDR}/v1/auth/approle/role/${rolename}/role-id" | jq .data.role_id)
-  echo $res
-}
-
-function vault-get-role-secret-id() {
-  rolename="$1"
-  shift
-  res=$(curl \
-      --silent \
-      --request POST \
-      --header 'Accept: application/json'  \
-      --header "X-Vault-Token: ${VAULT_TOKEN}" \
-      "${VAULT_ADDR}/v1/auth/approle/role/${rolename}/secret-id" | jq .data.secret_id)
-  echo $res
-}
-
 function vault-get-ssh-cred() {
   path=$1
   shift
@@ -62,6 +38,30 @@ function vault-get-ssh-cred() {
    echo $res
 }
 
+function vault-get-role-id() {
+  path="$1"
+  shift
+  res=$(curl \
+      --silent \
+      --request GET \
+      --header 'Accept: application/json'  \
+      --header "X-Vault-Token: ${VAULT_TOKEN}" \
+      "${VAULT_ADDR}/v1/${path}/role-id" | jq .data.role_id)
+  echo $res
+}
+
+function vault-get-role-secret-id() {
+  path="$1"
+  shift
+  res=$(curl \
+      --silent \
+      --request POST \
+      --header 'Accept: application/json'  \
+      --header "X-Vault-Token: ${VAULT_TOKEN}" \
+      "${VAULT_ADDR}/v1/${path}/secret-id" | jq .data.secret_id)
+  echo $res
+}
+
 function vault-approle-login() {
   rolename="$1"
   shift
@@ -69,19 +69,25 @@ function vault-approle-login() {
   shift
   token_max_ttl="$*"  
 
-  payload="/tmp/app_role_${rolename}.json" 
+  postfix=$(echo $RANDOM | md5sum | head -c 20; echo;) 
+
+  # approle 생성용 payload 
+  payload="/tmp/app_role_${postfix}.json" 
   jq -n \
     --arg token_ttl "$token_ttl" \
     --arg token_max_ttl "$token_max_ttl" \
     '{"token_ttl": $ARGS.named["token_ttl"],"token_max_ttl": $ARGS.named["token_max_ttl"],"token_policies": ["ssh-otp"],"period": 0, "bind_secret_id": true}' > "${payload}"
     
+  # 지정된 ttl 을 가지는 approle 을 생성
   vault-provision "auth/approle/role/${rolename}" "${payload}"
+  sudo rm -rf  "${payload}"
+  
+  # role-id 및 secret-id 얻음
+  role_id=$(vault-get-role-id "auth/approle/role/${rolename}"  | tr -d '"')
+  secret_id=$(vault-get-role-secret-id "auth/approle/role/${rolename}"  | tr -d '"')
 
-  role_id=$(vault-get-role-id "${rolename}"  | tr -d '"')
-  secret_id=$(vault-get-role-secret-id "${rolename}"  | tr -d '"')
-
-  postfix=$(echo $RANDOM | md5sum | head -c 20; echo;) 
-  payload="/tmp/otp_role-${postfix}.json" 
+  # approle 로그인 및 토큰 정보 리턴
+  payload="/tmp/otp-login-${postfix}.json" 
 
   jq -n \
     --arg role_id $role_id \
