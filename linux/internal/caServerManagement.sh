@@ -77,7 +77,7 @@ function backup-sshd-config(){
 function edit-sshd-config() {
   file="$1"
   sudo sed -i '/^'"TrustedUserCAKeys"'/d' ${file}
-  echo "TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" | sudo tee -a ${file} > /dev/null
+  echo "TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" | sudo tee -a ${file}
 }
  
 function reload-sshd(){
@@ -131,7 +131,7 @@ export VAULT_TOKEN=$APP_TOKEN
 
 cakey=$(vault-read-ca "ssh-client-signer/config/ca")
 echo "New Key : $cakey"
-echo $cakey | sudo tee /etc/ssh/trusted-user-ca-keys.pem > /dev/null
+echo $cakey | sudo tee /etc/ssh/trusted-user-ca-keys.pem
 
 backup-sshd-config "${sshd_config_file}"
 edit-sshd-config "${sshd_config_file}"

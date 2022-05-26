@@ -1,4 +1,3 @@
-
 ##  SSH CA - Client(Bastion)
  
 Bastion Host 에서 Internal Server 로 접근시는 Vault CA 를 사용한다.
