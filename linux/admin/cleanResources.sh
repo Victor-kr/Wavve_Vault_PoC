@@ -56,8 +56,11 @@ if [ -z "$vault_token" ]; then
     exit 1
 fi
 
-export VAULT_ADDR='http://172.31.44.220:8200'
-export VAULT_TOKEN='hvs.zpu3IwU6OyNBg7iDN8DbWb3K'
+#export VAULT_ADDR='http://172.31.44.220:8200'
+#export VAULT_TOKEN='hvs.zpu3IwU6OyNBg7iDN8DbWb3K'
+
+export VAULT_ADDR="${vault_addr:-http://172.31.44.220:8200}"
+export VAULT_TOKEN="${vault_token:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K}"
 
 #---------------------------------------------------------------
 #  Cleaning
