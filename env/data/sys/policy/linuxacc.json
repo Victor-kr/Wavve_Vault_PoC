@@ -1,1 +1,0 @@
-{"policy":"path \"db/creds/linuxacc\" {\n  capabilities = [\"create\",\"read\",\"update\",\"list\"]\n}"}
