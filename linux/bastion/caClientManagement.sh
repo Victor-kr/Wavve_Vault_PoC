@@ -76,9 +76,9 @@ function vault-sign-ssh-key() {
    
   echo $res > "${public_key_file}_cert.pub"
 
-  sudo chmod 600 "${public_key_file}"
-  sudo chmod 644 "${public_key_file}.pub"
-  sudo chmod 644 "${public_key_file}_cert.pub"
+  sudo chmod 400 "${public_key_file}"
+  sudo chmod 400 "${public_key_file}.pub"
+  sudo chmod 400 "${public_key_file}_cert.pub"
  
 }
 
@@ -129,6 +129,6 @@ export VAULT_TOKEN=$APP_TOKEN
 
 public_key_file="${HOME}/.ssh/${keyname}"
 ssh-keyscan "${server}" >> known_hosts
-ssh-keygen -t rsa -b 4096 -P "" -f "$public_key_file"
+ssh-keygen -t rsa -P "" -f "$public_key_file"
 
 vault-sign-ssh-key "ssh-client-signer/sign/ssh-ca-role" "$public_key_file"
