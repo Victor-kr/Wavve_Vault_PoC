@@ -33,6 +33,25 @@ ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '2d 10h 10m'
 
 ##  SSH CA 과정
 
+Server 
+
+```console
+$ export VAULT_ADDR="http://172.31.44.220:8200"
+$ export VAULT_TOKEN="hvs.zpu3IwU6OyNBg7iDN8DbWb3K"
+$ chmod +x ./caClientManagement.sh
+$ chmod +x ./caServerManagement.sh
+$ ./caServerManagement.sh
+```
+
+Client
+
+```console
+$ export VAULT_ADDR="http://172.31.44.220:8200"
+$ export VAULT_TOKEN="hvs.zpu3IwU6OyNBg7iDN8DbWb3K" 
+$ chmod +x ./caServerManagement.sh
+$ ./caClientManagement.sh -s 172.31.43.32 -k myTestkey
+```
+
 Admin 에서 CA Sign 이 가능한 Token 을 발행한다.
 
 ```console 

@@ -1,4 +1,5 @@
 #!/bin/bash
+ 
 
 #---------------------------------------------------------------
 #  Functions
@@ -130,7 +131,7 @@ do
     case "${flag}" in
         s) server=${OPTARG};;
         n) username=${OPTARG};;
-	    g) group=${OPTARG};;
+	      g) group=${OPTARG};;
         t) duration=${OPTARG};;
     esac
 done
@@ -159,6 +160,26 @@ fi
 if [ -z "$group" ]; then
    group="$username"  
 fi
+
+#---------------------------------------------------------------
+#  Check jq & at command installed
+#--------------------------------------------------------------- 
+programs=("jq" "at" "curl")
+for program in "${programs[@]}"; do
+  if which "${program}" >/dev/null; then
+    echo "${program} already installed" 
+  else
+    if command -v apt >/dev/null; then
+      sudo apt update 
+      sudo apt install -y "${program}"
+    elif command -v apt-get >/dev/null; then
+      sudo apt-get update 
+      sudo apt-get install -y "${program}"
+    elif command -v yum >/dev/null; then
+      sudo yum install -y "${program}"
+    fi
+  fi
+done
 
 #---------------------------------------------------------------
 #  Vault login

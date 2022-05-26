@@ -117,19 +117,19 @@ export VAULT_TOKEN="${vault_token:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K}"
 #---------------------------------------------------------------
 #  Check jq & at command installed
 #--------------------------------------------------------------- 
-programs="jq at curl"
-for p in programs; do
-  if which jq >/dev/null; then
-    echo "${p} already installed"
+programs=("jq" "at" "curl")
+for program in "${programs[@]}"; do
+  if which "${program}" >/dev/null; then
+    echo "${program} already installed" 
   else
     if command -v apt >/dev/null; then
       sudo apt update 
-      sudo apt install $p -y
+      sudo apt install -y "${program}"
     elif command -v apt-get >/dev/null; then
       sudo apt-get update 
-      sudo apt-get install $p -y
+      sudo apt-get install -y "${program}"
     elif command -v yum >/dev/null; then
-      sudo yum install  $p -y 
+      sudo yum install -y "${program}"
     fi
   fi
 done
