@@ -65,6 +65,7 @@ export VAULT_TOKEN="${vault_token:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K}"
 #---------------------------------------------------------------
 #  Cleaning
 #---------------------------------------------------------------
+servername="${server//./_}" 
 sudo userdel -f -r $name
-vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${name}"
+vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${servername}_${username}"
 vault-delete-secret "tempusers/metadata/linux/${server}/users/${name}"

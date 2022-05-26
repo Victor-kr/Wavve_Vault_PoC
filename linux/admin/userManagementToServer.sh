@@ -143,6 +143,8 @@ if [ -z "$server" ]; then
     exit 1   
 fi
 
+servername="${server//./_}" 
+
 if [ -z "$username" ]; then
     echo '[Error] Please put a username prefix.'
     exit 1   
@@ -180,14 +182,17 @@ username="${username}_${postfix}"
 echo "Creating a otp role for temporary user.."
 
 jq -n \
---arg cidr_list "0.0.0.0/0" \
+--arg cidr_list "${server}/32" \
 --arg default_user "$username" \
 --arg allowed_user "$username" \
 --arg key_type "otp" \
 --arg port 22 \
-'{"cidr_list": $ARGS.named["cidr_list"],"default_user": $ARGS.named["default_user"],"allowed_user": $ARGS.named["allowed_user"],"key_type": $ARGS.named["key_type"],"port": $ARGS.named["port"]}' > "/tmp/otp_role_${username}.json"
+'{"cidr_list": $ARGS.named["cidr_list"],"default_user": $ARGS.named["default_user"],"allowed_user": $ARGS.named["allowed_user"],"key_type": $ARGS.named["key_type"],"port": $ARGS.named["port"]}' > "/tmp/otp_role_${servername}_${username}.json"
  
-vault-provision "ssh-client-onetime-pass/roles/otp_role_${username}" "/tmp/otp_role_${username}.json"
+
+
+vault-provision "ssh-client-onetime-pass/roles/otp_role_${servername}_${username}" "/tmp/otp_role_${servername}_${username}.json"
+rm -rf "/tmp/otp_role_${servername}_${username}.json"
 
 if [ ! $? == "0" ]; then
     echo "  failed to create a otp role for temporary user - otp_role_$username"
@@ -219,7 +224,7 @@ sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer
 
 if [ ! $? == "0" ]; then
     echo "  failed to add a new temporary user to target server - server: $server, username: $username"
-    vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${username}"
+    vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${servername}_${username}"
     exit 1
 else 
     echo "  success to add a new temporary user to target server - server: $server, username: $username"
@@ -227,6 +232,6 @@ fi
 
 echo ""
 echo ""	 
-echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_$username ip=$server"
+echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_${servername}_${username} ip=$server"
 echo "Try : ssh $username@$server" 
 echo "Vaildation : $duration"
