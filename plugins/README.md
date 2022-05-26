@@ -1,6 +1,8 @@
+###  Bastion Server 준비사항
 
-## Vault SSH Helper 기본 SSH 설정 - BastionHost 에서 수행
+vault-ssh-helper 설치 및 구성을 진행한다.
 
+```console
 $ sudo su
 
 // vault-ssh-helper 다운로드 및 설치
@@ -41,9 +43,10 @@ UsePAM yes
 PasswordAuthentication no
 
 $ sudo systemctl restart sshd
+```
 
-
-## Vault SSH Helper 변경시는 아래 수행 - BastionHost 에서 수행
+ 
+##  Bastion Server 준비사항 (plugin 수정시)
 
 1. GoInstall.pdf 를 확인하여 Go 빌드 환경을 구성
 2. 아래 과정을 통해 플러그인을 수정 후 빌드 : config 파일의 VAULT_ADDR 및 SSH_ROLE_NAME 은 상황에 맞게 구성
