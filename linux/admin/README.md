@@ -1,6 +1,8 @@
 
-##  Admin Server 에서 BationHost 에 접근 후 신규 유저 생성 및 SSH 설정
+##  SSH OTP 과정
  
+Admin Server 에서 BationHost 에 접근 후 신규 유저를 생성 하고 SSH 접속을 위한 정보를 얻어낸 후 클라이언트에 전달하면 된다.
+
 ```console
 $ sudo apt install jq
 $ sudo apt install sshpass
