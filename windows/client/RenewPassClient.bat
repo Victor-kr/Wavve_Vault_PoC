@@ -1,0 +1,1 @@
+Powershell.exe -noprofile -executionpolicy bypass "C:\Wavve\windows\client\RenewPassClient.ps1"
