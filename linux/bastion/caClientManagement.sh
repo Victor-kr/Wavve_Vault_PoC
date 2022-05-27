@@ -76,7 +76,7 @@ function vault-sign-ssh-key() {
     --request POST \
     --header "X-Vault-Token: ${VAULT_TOKEN}" \
     --data @"${payload}" \
-    "${VAULT_ADDR}/v1/${path}"  | jq .data.signed_key | tr -d '"')
+    "${VAULT_ADDR}/v1/${path}"  | jq .data.signed_key) # | tr -d '"'
 
   sudo rm -rf  "${payload}"
    
@@ -143,4 +143,5 @@ ssh-keygen -t rsa-sha2-256 -N "" -C "${ssh_user}" -f "${key_file}"
 
 vault-sign-ssh-key "ssh-client-signer/sign/ssh-ca-role" "${ssh_user}"
 
-echo "Trying.... ssh -i .ssh/id_rsa_${ssh_user}_cert.pub -i .ssh/id_rsa_${ssh_user} ${ssh_user}@${server}"
+echo ""
+echo "Trying.... ssh -i ~/.ssh/id_rsa_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_user} ${ssh_user}@${server}"
