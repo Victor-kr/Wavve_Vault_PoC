@@ -58,7 +58,6 @@ function vault-sign-ssh-key() {
   ssh_user="$*"
   shift 
 
-
   key_file="${HOME}/.ssh/id_rsa_${ssh_user}"
   public_key=$(cat ${key_file}.pub)
   
@@ -83,16 +82,12 @@ function vault-sign-ssh-key() {
   res=${res%$'\n'} #후행 줄바꿈 제거
   res=${res/%??/} #후행 줄바꿈 문자 제거
 
-  echo $res | sudo tee "${key_file}_cert.pub"
+  echo $res | tee "${key_file}_cert.pub"
 
   sudo chmod 400 "${key_file}"
   sudo chmod 400 "${key_file}.pub"
   sudo chmod 400 "${key_file}_cert.pub" 
 
-  echo "KEY : "
-  cat "${key_file}"
-  echo "PUBLIC KEY : "
-  cat "${key_file}.pub"
   echo "SIGN KEY: "
   cat "${key_file}_cert.pub"
 }
@@ -112,7 +107,7 @@ if [ -z "$sshd_config_file" ]; then
   echo '[Info] Config /etc/ssh/sshd_config ..'
   sshd_config_file="/etc/ssh/sshd_config"
 else 
-   echo '[Info] Config ${sshd_config_file}..'
+  echo '[Info] Config ${sshd_config_file}..'
 fi
 
 if [ -z "$ssh_user" ]; then 
@@ -148,9 +143,11 @@ export APP_TOKEN=$(vault-approle-login "carole")
 export VAULT_TOKEN=$APP_TOKEN
 
 key_file="${HOME}/.ssh/id_rsa_${ssh_user}"
+sudo rm -rf "${key_file}"
+sudo rm -rf  "${key_file}.pub"
+sudo rm -rf  "${key_file}_cert.pub" 
 
 ssh-keygen -t rsa-sha2-256 -N "" -C "${ssh_user}" -f "${key_file}"
-
 vault-sign-ssh-key "ssh-client-signer/sign/ssh-ca-role" "${ssh_user}"
 
 echo ""
