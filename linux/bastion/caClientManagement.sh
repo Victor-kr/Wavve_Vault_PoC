@@ -84,8 +84,7 @@ function vault-sign-ssh-key() {
 
   sudo chmod 600 "${key_file}"
   sudo chmod 644 "${key_file}.pub"
-  sudo chmod 644 "${key_file}_cert.pub"
- 
+  sudo chmod 644 "${key_file}_cert.pub" 
 }
 
 #---------------------------------------------------------------
