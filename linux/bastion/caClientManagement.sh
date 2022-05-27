@@ -61,7 +61,7 @@ function vault-sign-ssh-key() {
 
   key_file="${HOME}/.ssh/id_rsa_${ssh_user}"
   public_key=$(cat ${key_file}.pub)
-  echo "PUBLIC KEY : $public_key"
+  
 
   postfix=$(echo $RANDOM | md5sum | head -c 20; echo;)
   payload="/tmp/sign-ssh-key-${postfix}.json"
@@ -76,15 +76,25 @@ function vault-sign-ssh-key() {
     --request POST \
     --header "X-Vault-Token: ${VAULT_TOKEN}" \
     --data @"${payload}" \
-    "${VAULT_ADDR}/v1/${path}"  | jq .data.signed_key) # | tr -d '"'
+    "${VAULT_ADDR}/v1/${path}"  | jq .data.signed_key | tr -d '"' | tr -d '\n')
 
   sudo rm -rf  "${payload}"
-   
+  
+  res=${res%$'\n'} #후행 줄바꿈 제거
+  res=${res/%??/} #후행 줄바꿈 문자 제거
+
   echo $res | sudo tee "${key_file}_cert.pub"
 
-  sudo chmod 600 "${key_file}"
-  sudo chmod 644 "${key_file}.pub"
-  sudo chmod 644 "${key_file}_cert.pub" 
+  sudo chmod 400 "${key_file}"
+  sudo chmod 400 "${key_file}.pub"
+  sudo chmod 400 "${key_file}_cert.pub" 
+
+  echo "KEY : "
+  cat "${key_file}"
+  echo "PUBLIC KEY : "
+  cat "${key_file}.pub"
+  echo "SIGN KEY: "
+  cat "${key_file}_cert.pub"
 }
 
 #---------------------------------------------------------------
