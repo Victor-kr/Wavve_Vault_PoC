@@ -70,7 +70,7 @@ function vault-sign-ssh-key() {
     --request POST \
     --header "X-Vault-Token: ${VAULT_TOKEN}" \
     --data @"${payload}" \
-    "${VAULT_ADDR}/v1/${path}"  | jq .data.signed_key)
+    "${VAULT_ADDR}/v1/${path}"  | jq .data.signed_key | tr -d '"')
 
   sudo rm -rf  "${payload}"
    
