@@ -77,7 +77,7 @@ function vault-approle-login() {
   jq -n \
     --arg token_ttl "$token_ttl" \
     --arg token_max_ttl "$token_max_ttl" \
-    '{"token_ttl": $ARGS.named["token_ttl"],"token_max_ttl": $ARGS.named["token_max_ttl"],"token_policies": ["ssh-otp"],"period": 0, "bind_secret_id": true}' > "${payload}"
+    '{"token_ttl": $ARGS.named["token_ttl"],"token_max_ttl": $ARGS.named["token_max_ttl"],"token_policies": ["ssh-otp","ssh-sign-update"],"period": 0, "bind_secret_id": true}' > "${payload}"
     
   # 지정된 ttl 을 가지는 approle 을 생성
   vault-provision "auth/approle/role/${rolename}" "${payload}"
@@ -126,13 +126,15 @@ t2m() {
 #---------------------------------------------------------------
 #  Getting input parameters
 #---------------------------------------------------------------
-while getopts s:n:g:t: flag
+while getopts s:n:g:t:u:h: flag
 do
     case "${flag}" in
         s) server=${OPTARG};;
         n) username=${OPTARG};;
 	      g) group=${OPTARG};;
         t) duration=${OPTARG};;
+        u) ssh_user=${OPTARG};; 
+        h) ssh_ca_role=${OPTARG};;         
     esac
 done
 
@@ -240,8 +242,17 @@ echo "Creating a temporary user to target server.."
 masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
 sshpass -p $masterpass scp -pv $PWD/cleanResources.sh ubuntu@$server:/home/ubuntu/cleanResources.sh
 
-masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN #&> /dev/null
+
+if [[ -z "${ssh_user}" || -z "${ssh_ca_role}" ]]; then 
+  masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
+  sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN #&> /dev/null
+
+else
+  echo 'Proceed with the CA Sign process for the temporary user..CaRole : ${ssh_ca_role} ,CaUser : "${ssh_user}'
+
+  masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
+  sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN -u $ssh_user -h $ssh_ca_role #&> /dev/null
+fi
 
 if [ ! $? == "0" ]; then
     echo "  failed to add a new temporary user to target server - server: $server, username: $username"
@@ -255,4 +266,9 @@ echo ""
 echo ""	 
 echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_${servername}_${username} ip=$server"
 echo "Try : ssh $username@$server" 
+
+if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then
+  echo "Trying.... ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@172.31.43.32 => ${ssh_ca_role}_allowed_servers"
+fi
+
 echo "Vaildation : $duration"

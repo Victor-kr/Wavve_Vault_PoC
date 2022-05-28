@@ -52,11 +52,128 @@ function vault-delete-role() {
       "${VAULT_ADDR}/v1/${rolepath}"
 }
 
+function vault-get-role-id() {
+  path="$1"
+  shift
+  res=$(curl \
+      --silent \
+      --request GET \
+      --header 'Accept: application/json'  \
+      --header "X-Vault-Token: ${VAULT_TOKEN}" \
+      "${VAULT_ADDR}/v1/${path}/role-id" | jq .data.role_id)
+  echo $res
+}
+
+function vault-get-role-secret-id() {
+  path="$1"
+  shift
+  res=$(curl \
+      --silent \
+      --request POST \
+      --header 'Accept: application/json'  \
+      --header "X-Vault-Token: ${VAULT_TOKEN}" \
+      "${VAULT_ADDR}/v1/${path}/secret-id" | jq .data.secret_id)
+  echo $res
+}
+
+function vault-approle-login() {
+  rolename="$1"
+  shift 
+ 
+  # role-id 및 secret-id 얻음
+  role_id=$(vault-get-role-id "auth/approle/role/${rolename}"  | tr -d '"')
+  secret_id=$(vault-get-role-secret-id "auth/approle/role/${rolename}"  | tr -d '"')
+ 
+  postfix=$(echo $RANDOM | md5sum | head -c 20; echo;) 
+  payload="/tmp/app_role_${rolename}_${postfix}.json" 
+
+  jq -n \
+    --arg role_id $role_id \
+    --arg secret_id $secret_id  \
+    '{"role_id": $ARGS.named["role_id"],"secret_id": $ARGS.named["secret_id"]}' > "${payload}"
+ 
+  curl \
+    --silent \
+    --request POST \
+    --data @"${payload}" \
+    "${VAULT_ADDR}/v1/auth/approle/login" | jq .auth.client_token | tr -d '"'
+ 
+   sudo rm -rf  "${payload}"
+}
+
+function create-ssh-key() {
+  username=$1
+  shift   
+  group=$1
+  shift     
+  directory=$1
+  shift 
+  ssh_ca_role=$1
+  shift   
+  ssh_user="$*"
+
+  key_file="${directory}/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}"
+  sudo rm -rf "${key_file}"
+  sudo rm -rf "${key_file}.pub"
+  sudo rm -rf "${key_file}_cert.pub" 
+
+  ssh-keygen -t rsa-sha2-256 -N "" -C "${ssh_user}" -f "${key_file}"
+
+  sudo chown "${username}:${group}" "${key_file}"
+  sudo chown "${username}:${group}" "${key_file}.pub"
+  
+  sudo chmod 400 "${key_file}"
+  sudo chmod 400 "${key_file}.pub"  
+}
+
+function vault-sign-ssh-key() {
+  username=$1
+  shift   
+  group=$1
+  shift       
+  directory=$1
+  shift 
+  ssh_ca_role=$1
+  shift   
+  ssh_user="$*"
+
+  key_file="${directory}/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}"
+  public_key=$(sudo cat ${key_file}.pub)
+  
+
+  postfix=$(echo $RANDOM | md5sum | head -c 20; echo;)
+  payload="/tmp/sign-ssh-key-${postfix}.json"
+
+  jq -n \
+    --arg public_key "$public_key" \
+    --arg valid_principals "$ssh_user" \
+    '{"public_key": $ARGS.named["public_key"],"valid_principals": $ARGS.named["valid_principals"]}' > "${payload}"
+
+  res=$(curl \
+    --silent \
+    --request POST \
+    --header "X-Vault-Token: ${VAULT_TOKEN}" \
+    --data @"${payload}" \
+    "${VAULT_ADDR}/v1/ssh-client-signer/sign/${ssh_ca_role}"  | jq .data.signed_key | tr -d '"' | tr -d '\n')
+
+  sudo rm -rf  "${payload}"
+  
+  res=${res%$'\n'} #후행 줄바꿈 제거
+  res=${res/%??/} #후행 줄바꿈 문자 제거
+
+  echo $res | tee "${key_file}_cert.pub" 
+  sudo chown "${username}:${group}" "${key_file}_cert.pub"
+  sudo chmod 400 "${key_file}_cert.pub" 
+
+  echo "SIGN KEY: "
+  sudo cat "${key_file}_cert.pub"
+}
+
 
 #---------------------------------------------------------------
 #  Getting input parameters
 #---------------------------------------------------------------
-while getopts n:t:v:d:g:s:r:k: flag
+while getopts n:t:v:d:g:s:r:k:u:h: flag
 do
     case "${flag}" in
         n) name=${OPTARG};;
@@ -67,8 +184,13 @@ do
 	      s) shell=${OPTARG};; 
         r) vault_addr=${OPTARG};; 
         k) vault_token=${OPTARG};; 
+        u) ssh_user=${OPTARG};; 
+        h) ssh_ca_role=${OPTARG};; 
     esac
 done
+
+
+
 
 #---------------------------------------------------------------
 #  Checking input parameters
@@ -108,7 +230,7 @@ if [ -z "$group" ]; then
 fi
 
 if [ -z "$shell" ]; then
-   shell="/bin/sh"
+   shell="/bin/bash"
 fi
 
 export VAULT_ADDR="${vault_addr:-http://172.31.44.220:8200}"
@@ -168,6 +290,7 @@ else
 fi
 
 sudo useradd -d "${directory}" -m  -g "${group}" -s "${shell}" "${name}" # Add a new user to server
+
 res=$?
 if [ $res -eq 0 ]; then
   echo "[Info] Succeed to useradd -  ${name}"      
@@ -175,6 +298,13 @@ else
   echo "[Error] Failed to useradd-  ${name}"
   exit 1
 fi
+
+sudo chown "${name}:${group}" "${directory}" 
+sudo chmod 777 "${directory}"
+
+sudo mkdir "${directory}/.ssh" 
+sudo chown "${name}:${group}" "${directory}/.ssh" 
+sudo chmod 777 "${directory}/.ssh" 
 
 #---------------------------------------------------------------
 # Write user information to vault
@@ -189,19 +319,23 @@ vault-put-secret  "tempusers/data/linux/${server}/users/${name}" "/tmp/userinfo_
 
 
 #---------------------------------------------------------------
-# Delete temporary user after period 
-# [TODO]
-#    otp role 삭제
-#    secret 삭제
+# Delete temporary user after period  
 #---------------------------------------------------------------
 cat <<EOF | at now + ${duration} minutes 
   sudo chmod +x /home/ubuntu/cleanResources.sh
   /home/ubuntu/cleanResources.sh  -n "${name}" -s "${server}" -r "${VAULT_ADDR}" -k "${VAULT_TOKEN}"
 EOF
 
-#---------------------------------------------------------------
-# Print Result
-#---------------------------------------------------------------
-id "$name"
-getent group $group
-atq
+
+if [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then 
+  id "$name"
+  getent group $group
+  atq
+else
+  echo 'Checking CA Process : ${ssh_ca_role} ,CaUser : "${ssh_user}'
+  create-ssh-key "${name}" "${group}" "${directory}" "${ssh_ca_role}" "${ssh_user}"
+  vault-sign-ssh-key "${name}" "${group}" "${directory}" "${ssh_ca_role}" "${ssh_user}"
+fi 
+
+sudo chmod 700 "${directory}" 
+sudo chmod 700 "${directory}/.ssh" 

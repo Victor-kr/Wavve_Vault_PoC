@@ -9,6 +9,7 @@ $ sudo apt install sshpass
 $ chmod +x ./addUserToRemoteServer.sh
 $ chmod +x ./userManagementToServer.sh
 
+$ export VAULT_ADDR="http://172.31.44.220:8200"
 $ vault login -method=userpass username=linuxadmin password=linuxadmin
 Key                    Value
 ---                    -----
@@ -21,7 +22,6 @@ identity_policies      []
 policies               ["admin-policy" "default"]
 token_meta_username    linuxadmin
 
-$ export VAULT_ADDR="http://172.31.44.220:8200"
 $ export VAULT_TOKEN="hvs.CAESIJHL3EBy01oB7Lq2MJ5u2r9AxCRo76bJxwg_nF6rW_8RGh4KHGh2cy5NTHg3dWlpbjhzcVFzY01OeFhCYmx1czk"
 
 $ ./userManagementToServer.sh -s <BASTION_SERVER_IP> -n <USER_NAME> -t <TIME>
@@ -29,4 +29,6 @@ $ ./userManagementToServer.sh -s <BASTION_SERVER_IP> -n <USER_NAME> -t <TIME>
 ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5m'
 ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5h 10m'
 ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '2d 10h 10m'
+
+ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5m'  -u 'ubuntu' -h 'ssh-ca-role'
 ```
