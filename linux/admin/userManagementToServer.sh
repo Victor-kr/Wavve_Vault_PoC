@@ -166,7 +166,7 @@ fi
 #---------------------------------------------------------------
 #  Check jq & at command installed
 #--------------------------------------------------------------- 
-programs=("jq" "at" "curl")
+programs=("jq" "at" "curl" "sshpass")
 for program in "${programs[@]}"; do
   if which "${program}" >/dev/null; then
     echo "${program} already installed" 
