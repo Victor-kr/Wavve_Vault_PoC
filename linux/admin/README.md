@@ -32,7 +32,7 @@ Internal 서버에 설정한 Role 이름을 같이 전달하면 SSH CA 설정도
 //   t(optional) duration (default : 5m)
 //   u(optional) ssh_user 
 //   h(optional) ssh_ca_role 
-$ ./userManagementToServer.sh -s <BASTION_SERVER_IP> -n <USER_NAME> -g <GROUP_NAME> -t <TIME>
+$ ./userManagementToServer.sh -s <BASTION_SERVER_IP> -n <USER_NAME> -g <GROUP_NAME> -t <TIME>  -u <SSH-USER> -h <SSH-ROLE_NAME>
 ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5m'
 ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5h 10m'
 ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '2d 10h 10m' 
