@@ -229,29 +229,18 @@ fi
 #---------------------------------------------------------------
 echo "Creating a temporary user to target server.."
 
-#addUserToRemoteServer.sh 
-#   n) name
-#   v) server
-#   t) duration
-#   d) directory (optional)
-#   g) group (optional)
-#   s) shell (optional)
-#   r) vault_addr
-#   k) vault_token
-
 masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
 sshpass -p $masterpass scp -pv $PWD/cleanResources.sh ubuntu@$server:/home/ubuntu/cleanResources.sh
 
-
 if [[ -z "${ssh_user}" || -z "${ssh_ca_role}" ]]; then 
   masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-  sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN #&> /dev/null
+  sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN &> /dev/null
 
 else
   echo 'Proceed with the CA Sign process for the temporary user..CaRole : ${ssh_ca_role} ,CaUser : "${ssh_user}'
 
   masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-  sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN -u $ssh_user -h $ssh_ca_role #&> /dev/null
+  sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN -u $ssh_user -h $ssh_ca_role &> /dev/null
 fi
 
 if [ ! $? == "0" ]; then

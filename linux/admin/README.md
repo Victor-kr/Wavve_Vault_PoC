@@ -24,11 +24,15 @@ token_meta_username    linuxadmin
 
 $ export VAULT_TOKEN="hvs.CAESIJHL3EBy01oB7Lq2MJ5u2r9AxCRo76bJxwg_nF6rW_8RGh4KHGh2cy5NTHg3dWlpbjhzcVFzY01OeFhCYmx1czk"
 
-$ ./userManagementToServer.sh -s <BASTION_SERVER_IP> -n <USER_NAME> -t <TIME>
 
+# s) server 
+# n) username 
+# g) group (optional, default : username)
+# t) duration (optional, default : 5m)
+# u) ssh_user (optional)
+# h) ssh_ca_role (optional)
+$ ./userManagementToServer.sh -s <BASTION_SERVER_IP> -n <USER_NAME> -g <GROUP_NAME> -t <TIME>
 ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5m'
 ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5h 10m'
-ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '2d 10h 10m'
-
+ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '2d 10h 10m' 
 ex> ./userManagementToServer.sh -s 172.31.43.91 -n 'daeung' -t '5m'  -u 'ubuntu' -h 'ssh-ca-role'
-```
