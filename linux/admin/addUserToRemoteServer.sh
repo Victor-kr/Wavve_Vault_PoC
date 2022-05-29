@@ -233,8 +233,17 @@ if [ -z "$shell" ]; then
    shell="/bin/bash"
 fi
 
-export VAULT_ADDR="${vault_addr:-http://172.31.44.220:8200}"
-export VAULT_TOKEN="${vault_token:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K}"
+#---------------------------------------------------------------
+#  Check user already exist
+#---------------------------------------------------------------
+if id "${name}" &>/dev/null; then
+  echo "[Info] User already exist -  ${name}"
+  exit 0
+fi
+ 
+
+
+
 
 #---------------------------------------------------------------
 #  Check jq & at command installed
@@ -255,15 +264,6 @@ for program in "${programs[@]}"; do
     fi
   fi
 done
-
-#---------------------------------------------------------------
-#  Check user already exist
-#---------------------------------------------------------------
-if id "${name}" &>/dev/null; then
-  echo "[Info] User already exist -  ${name}"
-  exit 0
-fi
- 
 
 #---------------------------------------------------------------
 #  Creating user and group
@@ -309,6 +309,9 @@ sudo chmod 777 "${directory}/.ssh"
 #---------------------------------------------------------------
 # Write user information to vault
 #---------------------------------------------------------------
+export VAULT_ADDR="${vault_addr:-http://172.31.44.220:8200}"
+export VAULT_TOKEN="${vault_token:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K}"
+
 jq -n --arg name "${name}" \
 --arg directory "${directory}"  \
 --arg group "${group}"  \
