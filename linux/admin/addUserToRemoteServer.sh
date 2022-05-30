@@ -189,9 +189,6 @@ do
     esac
 done
 
-
-
-
 #---------------------------------------------------------------
 #  Checking input parameters
 #---------------------------------------------------------------
@@ -237,13 +234,10 @@ fi
 #  Check user already exist
 #---------------------------------------------------------------
 if id "${name}" &>/dev/null; then
-  echo "[Info] User already exist -  ${name}"
-  exit 0
+  echo "[Info] The temporary user already used -  ${name}"
+  exit 1
 fi
  
-
-
-
 
 #---------------------------------------------------------------
 #  Check jq & at command installed
