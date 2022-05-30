@@ -1,9 +1,9 @@
 #!/bin/bash
  
 
-#---------------------------------------------------------------
+#--------------------------------------------------------------------------
 #  Functions
-#---------------------------------------------------------------
+#--------------------------------------------------------------------------
 function vault-provision() {
   path=$1
   shift
@@ -123,9 +123,10 @@ t2m() {
    sed 's/d/*24*60 +/g; s/h/*60 +/g; s/m/\+/g; s/+[ ]*$//g' <<< "$1" | bc
 }
 
-#---------------------------------------------------------------
+
+#--------------------------------------------------------------------------
 #  Getting input parameters
-#---------------------------------------------------------------
+#--------------------------------------------------------------------------
 while getopts s:n:g:t:u:h: flag
 do
     case "${flag}" in
@@ -138,15 +139,14 @@ do
     esac
 done
 
-#---------------------------------------------------------------
+
+#--------------------------------------------------------------------------
 #  Checking input parameters
-#---------------------------------------------------------------
+#--------------------------------------------------------------------------
 if [ -z "$server" ]; then
     echo '[Error] Please put a remote server name or ipaddress.'
     exit 1   
 fi
-
-servername="${server//./_}" 
 
 if [ -z "$username" ]; then
     echo '[Error] Please put a username prefix.'
@@ -163,9 +163,10 @@ if [ -z "$group" ]; then
    group="$username"  
 fi
 
-#---------------------------------------------------------------
+
+#--------------------------------------------------------------------------
 #  Check jq & at command installed
-#--------------------------------------------------------------- 
+#-------------------------------------------------------------------------- 
 programs=("jq" "at" "curl" "sshpass")
 for program in "${programs[@]}"; do
   if which "${program}" >/dev/null; then
@@ -183,81 +184,139 @@ for program in "${programs[@]}"; do
   fi
 done
 
-#---------------------------------------------------------------
+
+#--------------------------------------------------------------------------
 #  Vault login
-#---------------------------------------------------------------
+#--------------------------------------------------------------------------
 approle_duration=$(( duration + 10 )) 
 approle_duration="${approle_duration}m"
 export VAULT_ADDR=${VAULT_ADDR:-http://172.31.44.220:8200}
 export APP_TOKEN=$(vault-approle-login "$username" "${approle_duration}")
 export VAULT_TOKEN=$APP_TOKEN
 
-echo "vault token : $VAULT_TOKEN"
-#---------------------------------------------------------------
-# Creating a user name that people can't think of
-#---------------------------------------------------------------
-postfix=$(echo $RANDOM | md5sum | head -c 20; echo;)
-username="${username}_${postfix}"
+#--------------------------------------------------------------------------
+# 가용 시나리오
+#   * 존재하는 유저에 OTP, SSH CA 를 부여하고 싶다.
+#   * 임시 유저를 생성하고 OTP, SSH CA 를 부여하고 싶다.
+#   * 존재하는 유저에 OTP 를 부여하고 싶다.
+#   * 임시 유저에 OTP 를 부여하고 싶다.   
+#--------------------------------------------------------------------------
 
-#---------------------------------------------------------------
-# Set SSH Role  
-#---------------------------------------------------------------
-echo "Creating a otp role for temporary user.."
+
+#--------------------------------------------------------------------------
+#  Check user already exist
+#--------------------------------------------------------------------------
+masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
+sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./checkUserExistInRemoteServer.sh -n $username -v $server
+
+echo "***Check user already exist**********************************"
+
+checkuser=0
+
+echo "Result: $?"
+
+if [ "$?" == "0" ]; then
+  postfix=$(echo $RANDOM | md5sum | head -c 20; echo;)
+  username="${username}_${postfix}"
+  echo "The user is not exist. Keep going to make a temporary user - username : $username"
+elif [ "$?" == "2" ]; then
+  echo "The user is already exist - username : $username"
+  checkuser=1
+else 
+  echo "Please check input parameter - username : $username, server : $server"
+  exit 1
+fi
+
+#--------------------------------------------------------------------------
+#  Create OTP Role
+#--------------------------------------------------------------------------
+echo "***Creating a otp role for the user******************************"
+
+servername="${server//./_}" 
+payload="/tmp/otp_role_${servername}_${username}.json"
 
 jq -n \
---arg cidr_list "${server}/32" \
---arg default_user "$username" \
---arg allowed_user "$username" \
---arg key_type "otp" \
---arg port 22 \
-'{"cidr_list": $ARGS.named["cidr_list"],"default_user": $ARGS.named["default_user"],"allowed_user": $ARGS.named["allowed_user"],"key_type": $ARGS.named["key_type"],"port": $ARGS.named["port"]}' > "/tmp/otp_role_${servername}_${username}.json"
- 
-
-
+  --arg cidr_list "${server}/32" \
+  --arg default_user "$username" \
+  --arg allowed_user "$username" \
+  --arg key_type "otp" \
+  --arg port 22 \
+  '{"cidr_list": $ARGS.named["cidr_list"],"default_user": $ARGS.named["default_user"],"allowed_user": $ARGS.named["allowed_user"],"key_type": $ARGS.named["key_type"],"port": $ARGS.named["port"]}' > "$payload"
+  
 vault-provision "ssh-client-onetime-pass/roles/otp_role_${servername}_${username}" "/tmp/otp_role_${servername}_${username}.json"
-rm -rf "/tmp/otp_role_${servername}_${username}.json"
+
+rm -rf "$payload"
 
 if [ ! $? == "0" ]; then
-    echo "  failed to create a otp role for temporary user - otp_role_$username"
-    exit 1
+      echo "Failed to create a otp role for the user - otp_role_${servername}_${username}"
+      exit 1
 else 
-    echo "  success to create a otp role for temporary user - otp_role_$username"
+      echo "Success to create a otp role for the user - otp_role_${servername}_${username}"
 fi
 
-#---------------------------------------------------------------
-# Add a temporary user to target server
-#---------------------------------------------------------------
-echo "Creating a temporary user to target server.."
+#--------------------------------------------------------------------------
+#  유저가 존재하지 않는 경우 - 임시 유저 추가, 임시 유저 정보 저장, CA 생성
+#--------------------------------------------------------------------------
+if [ "$checkuser" -eq "0" ]; then
 
-masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-sshpass -p $masterpass scp -pv $PWD/cleanResources.sh ubuntu@$server:/home/ubuntu/cleanResources.sh
-
-if [[ -z "${ssh_user}" || -z "${ssh_ca_role}" ]]; then 
-  masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-  sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN &> /dev/null
-
-else
-  echo 'Proceed with the CA Sign process for the temporary user..CaRole : ${ssh_ca_role} ,CaUser : "${ssh_user}'
+  echo "***Post processing for temporary user************************"
 
   masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-  sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN -u $ssh_user -h $ssh_ca_role &> /dev/null
-fi
+  sshpass -p $masterpass scp -pv $PWD/cleanResources.sh ubuntu@$server:/home/ubuntu/cleanResources.sh &> /dev/null
 
-if [ ! $? == "0" ]; then
-    echo "  failed to add a new temporary user to target server - server: $server, username: $username"
-    vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${servername}_${username}"
-    exit 1
+  if [[ -z "${ssh_user}" || -z "${ssh_ca_role}" ]]; then 
+    masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
+    sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN &> /dev/null
+
+  else
+    echo 'Proceed with the CA Sign process for the temporary user..CaRole : ${ssh_ca_role} ,CaUser : "${ssh_user}'
+    masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
+    sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN -u $ssh_user -h $ssh_ca_role &> /dev/null
+  fi
+
+  if [ ! $? == "0" ]; then
+      echo "  failed to add a new temporary user to target server - server: $server, username: $username"
+      vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${servername}_${username}"
+      exit 1
+  else 
+      echo "  success to add a new temporary user to target server - server: $server, username: $username"
+  fi
+
+  echo ""
+  echo ""	 
+  echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_${servername}_${username} ip=$server"
+  echo "Try : ssh $username@$server" 
+
+  if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then
+    echo "Trying.... ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@172.31.43.32 => ${ssh_ca_role}_allowed_servers"
+  fi
+
+  echo "Vaildation : $duration"
+
+#--------------------------------------------------------------------------
+#  유저가 존재하는 경우 - CA 만 설정
+#--------------------------------------------------------------------------
 else 
-    echo "  success to add a new temporary user to target server - server: $server, username: $username"
+  echo "***Post processing for exist user************************"
+
+  if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then # SSH CA 설정이 필요한 경우
+    masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
+    sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./signCAToExistUser.sh -n $username -v $server -r $VAULT_ADDR -k $VAULT_TOKEN -u $ssh_user -h $ssh_ca_role &> /dev/null
+
+    if [ ! $? == "0" ]; then
+        echo "Failed to sign CA to exist user - server: $server, username: $username"
+        vault-delete-role "ssh-client-onetime-pass/roles/otp_role_${servername}_${username}"
+        exit 1
+    else 
+        echo "Success to sign CA to exist user - server: $server, username: $username"
+    fi
+  fi
+
+  echo ""
+  echo ""	 
+  echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_${servername}_${username} ip=$server"
+  echo "Try : ssh $username@$server" 
+  if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then
+    echo "Try : ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@172.31.43.32 => ${ssh_ca_role}_allowed_servers"
+  fi
 fi
-
-echo ""
-echo ""	 
-echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_${servername}_${username} ip=$server"
-echo "Try : ssh $username@$server" 
-
-if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then
-  echo "Trying.... ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@172.31.43.32 => ${ssh_ca_role}_allowed_servers"
-fi
-
-echo "Vaildation : $duration"
