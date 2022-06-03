@@ -490,7 +490,7 @@ $ sudo systemctl start vault
 $ sudo systemctl status vault
 $ export VAULT_ADDR="http://10.13.42.201:8200"
 $ vault status 
-$vault operator init
+$ vault operator init
 Unseal Key 1: GNxKYsnACporCzHmujTBqhWwfBcQwZdqQfsgpOaMWkdU
 Unseal Key 2: qADOqgFnHhLH2/OxVOSOJxkTwwYgD1LweKVtW/ZKBE9D
 Unseal Key 3: Wxsui8/Zii2UGQuy0VdVFXZpFVR3nIT5PGM9zNssi9eA
