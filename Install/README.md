@@ -24,11 +24,6 @@
 |Vault servers|Vault servers|8201|tcp|bidirectional|Raft, replication, request forwarding|
 |Consul and Vault servers|Consul servers|8300|tcp|incoming|Consul server RPC|
 |Consul and Vault servers|Consul and Vault servers|8301|tcp, udp|bidirectional|Consul LAN gossip|
- 
-
-### 참고 사이트
-
-https://docmoa.github.io/04-HashiCorp/04-Consul/02-Configuration/server.html
 
 
 ### Consul Server 1
@@ -404,7 +399,224 @@ $ consul operator raft list-peers
 ```
 
 
+### Vault Server Active (Consul Client 1)
 
+```console
+$ sudo chown root:root vault
+$ sudo mv vault /usr/local/bin/ 
+$ vault --version
+$ vault  -autocomplete-install
+$ complete -C /usr/local/bin/vault vault
+$ sudo setcap cap_ipc_lock=+ep /usr/local/bin/vault
 
+$ sudo useradd --system --home /etc/vault.d --shell /bin/false vault
+$ sudo touch /etc/systemd/system/vault.service
+$ sudo vi /etc/systemd/system/vault.service
+[Unit]
+Description="HashiCorp Vault - A tool for managing secrets"
+Documentation=https://www.vaultproject.io/docs/
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty=/etc/vault.d/vault.hcl
+StartLimitIntervalSec=60
+StartLimitBurst=3
 
- 
+[Service]
+Type=notify
+EnvironmentFile=/etc/vault.d/vault.env
+User=vault
+Group=vault
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+SecureBits=keep-caps
+AmbientCapabilities=CAP_IPC_LOCK
+CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+NoNewPrivileges=yes
+ExecStart=/usr/local/bin/vault server -config=/etc/vault.d/vault.hcl
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+LimitNOFILE=65536
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target
+
+$ sudo mkdir --parents /etc/vault.d 
+$ sudo mkdir  --parents /etc/vault/plugins
+$ sudo chown  -R vault:vault /etc/vault/plugins
+$ sudo chmod 777 /etc/vault/plugins
+
+$ sudo touch /etc/vault.d/vault.hcl
+$ sudo touch /etc/vault.d/vault.env
+$ sudo vi  /etc/vault.d/vault.hcl
+storage  "consul" {
+  "address" = "10.13.42.101:8500"
+  "path" = "vault_data"
+}
+
+listener "tcp" {
+  "address" = "0.0.0.0:8200"
+  "cluster_address" = "10.13.42.201:8201"
+  "tls_disable" = 1
+}
+
+"ui" = true
+
+plugin_directory="/etc/vault/plugins"
+disable_mlock = true
+default_lease_ttl = "768h"
+max_lease_ttl = "768h"
+api_addr = "http://10.13.42.201:8200"
+cluster_addr = "http://10.13.42.201:8201"
+
+service_registration "consul" {
+  address = "127.0.0.1:8500"
+}
+
+$ sudo chown -R vault:vault /etc/vault.d
+$ sudo chown vault:vault /etc/vault.d/vault.hcl
+$ sudo chown vault:vault /etc/vault.d/vault.env
+$ sudo chmod 640 /etc/vault.d/vault.hcl
+$ sudo chmod 640 /etc/vault.d/vault.env
+
+$ sudo systemctl enable vault
+$ sudo systemctl start vault
+$ sudo systemctl status vault
+$ export VAULT_ADDR="http://10.13.42.201:8200"
+$ vault status 
+$vault operator init
+...
+$ vault operator unseal
+```
+
+### Vault Server Standby (Consul Client 2)
+
+```console
+$ sudo chown root:root vault
+$ sudo mv vault /usr/local/bin/ 
+$ vault --version
+$ vault  -autocomplete-install
+$ complete -C /usr/local/bin/vault vault
+$ sudo setcap cap_ipc_lock=+ep /usr/local/bin/vault
+
+$ sudo useradd --system --home /etc/vault.d --shell /bin/false vault
+$ sudo touch /etc/systemd/system/vault.service
+$ sudo vi /etc/systemd/system/vault.service
+[Unit]
+Description="HashiCorp Vault - A tool for managing secrets"
+Documentation=https://www.vaultproject.io/docs/
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty=/etc/vault.d/vault.hcl
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=notify
+EnvironmentFile=/etc/vault.d/vault.env
+User=vault
+Group=vault
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+SecureBits=keep-caps
+AmbientCapabilities=CAP_IPC_LOCK
+CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+NoNewPrivileges=yes
+ExecStart=/usr/local/bin/vault server -config=/etc/vault.d/vault.hcl
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+LimitNOFILE=65536
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target
+
+$ sudo mkdir --parents /etc/vault.d 
+$ sudo mkdir  --parents /etc/vault/plugins
+$ sudo chown  -R vault:vault /etc/vault/plugins
+$ sudo chmod 777 /etc/vault/plugins
+
+$ sudo touch /etc/vault.d/vault.hcl
+$ sudo touch /etc/vault.d/vault.env
+$ sudo vi  /etc/vault.d/vault.hcl
+storage  "consul" {
+  "address" = "10.13.42.101:8500"
+  "path" = "vault_data"
+}
+
+listener "tcp" {
+  "address" = "0.0.0.0:8200"
+  "cluster_address" = "10.13.42.202:8201"
+  "tls_disable" = 1
+}
+
+"ui" = true
+
+plugin_directory="/etc/vault/plugins"
+disable_mlock = true
+default_lease_ttl = "768h"
+max_lease_ttl = "768h"
+api_addr = "http://10.13.42.202:8200"
+cluster_addr = "http://10.13.42.202:8201"
+
+service_registration "consul" {
+  address = "127.0.0.1:8500"
+}
+
+$ sudo chown -R vault:vault /etc/vault.d
+$ sudo chown vault:vault /etc/vault.d/vault.hcl
+$ sudo chown vault:vault /etc/vault.d/vault.env
+$ sudo chmod 640 /etc/vault.d/vault.hcl
+$ sudo chmod 640 /etc/vault.d/vault.env
+
+$ sudo systemctl enable vault
+$ sudo systemctl start vault
+$ sudo systemctl status vault
+$ export VAULT_ADDR="http://10.13.42.202:8200"
+$ vault status 
+...
+$ vault operator unseal
+```
+
+### 플러그인 설치
+
+- Vault Server Active (Consul Client 1)
+
+```console
+$ sudo chown vault:vault vault-secret-gen
+$ sudo mv vault-secret-gen /etc/vault/plugins/
+$ setcap cap_ipc_lock=+ep /etc/vault/plugins/vault-secrets-gen
+$ export VAULT_ADDR="http://10.13.42.201:8200"
+$ vault login
+$ export SHA256=$(shasum -a 256 "/etc/vault/plugins/vault-secrets-gen" | cut -d' ' -f1)
+$ vault plugin register -sha256="${SHA256}" -command="vault-secrets-gen" secret secrets-gen
+$ vault secrets enable  -path="gen" -plugin-name="secrets-gen" plugin
+```
+
+- Vault Server Standby (Consul Client 2)
+
+```console
+$ sudo chown vault:vault vault-secret-gen
+$ sudo mv vault-secret-gen /etc/vault/plugins/
+$ sudo setcap cap_ipc_lock=+ep /etc/vault/plugins/vault-secrets-gen
+$ export VAULT_ADDR="http://10.13.42.202:8200"
+$ vault login
+$ export SHA256=$(shasum -a 256 "/etc/vault/plugins/vault-secrets-gen" | cut -d' ' -f1)
+$ vault plugin register -sha256="${SHA256}" -command="vault-secrets-gen" secret secrets-gen
+```
+
+### 참고 사이트
+
+https://docmoa.github.io/04-HashiCorp/04-Consul/02-Configuration/server.html
