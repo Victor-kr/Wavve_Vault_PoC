@@ -58,14 +58,23 @@ ui_config {
   enabled = true
 }
 server = true 
-retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103","10.13.42.201","10.13.42.202"] 
+retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103"] 
 leave_on_terminate = true 
 log_level = "INFO" 
 datacenter = "dc-wavve" 
 enable_syslog = true 
-ports { 
-  grpc = 8502 
+ports {
+  http = 8500
+  dns = 8600
+  https = -1
+  serf_lan = 8301
+  grpc = 8502
+  server = 8300
 }
+performance {
+  raft_multiplier = 1
+}
+ 
 
 $ sudo mkdir -p -m 755 /opt/consul 
 $ sudo chown -R consul:consul /opt/consul 
@@ -127,14 +136,23 @@ ui_config {
   enabled = true
 }
 server = true 
-retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103","10.13.42.201","10.13.42.202"] 
+retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103"] 
 leave_on_terminate = true 
 log_level = "INFO" 
 datacenter = "dc-wavve" 
 enable_syslog = true 
-ports { 
-  grpc = 8502 
+ports {
+  http = 8500
+  dns = 8600
+  https = -1
+  serf_lan = 8301
+  grpc = 8502
+  server = 8300
 }
+performance {
+  raft_multiplier = 1
+}
+ 
 
 $ sudo mkdir -p -m 755 /opt/consul 
 $ sudo chown -R consul:consul /opt/consul 
@@ -195,13 +213,21 @@ ui_config {
   enabled = true
 }
 server = true 
-retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103","10.13.42.201","10.13.42.202"] 
+retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103"] 
 leave_on_terminate = true 
 log_level = "INFO" 
 datacenter = "dc-wavve" 
 enable_syslog = true 
-ports { 
-  grpc = 8502 
+ports {
+  http = 8500
+  dns = 8600
+  https = -1
+  serf_lan = 8301
+  grpc = 8502
+  server = 8300
+}
+performance {
+  raft_multiplier = 1
 }
 
 $ sudo mkdir -p -m 755 /opt/consul 
@@ -256,15 +282,24 @@ $ sudo vi  /etc/consul.d/consul.hcl
 data_dir = "/opt/consul" 
 bind_addr = "10.13.42.201"
 advertise_addr = "10.13.42.201"
+client_addr = "0.0.0.0"
 node_name = "consul-client-1"
-retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103","10.13.42.201","10.13.42.202"]
+retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103"]
+server = false
+rejoin_after_leave = true
 leave_on_terminate = true
 log_level = "INFO"
 datacenter = "dc-wavve"
 enable_syslog = true
 ports {
+  http = 8500
+  dns = 8600
+  https = -1
+  serf_lan = 8301
   grpc = 8502
+  server = 8300
 }
+
 
 $ sudo mkdir -p -m 755 /opt/consul 
 $ sudo chown -R consul:consul /opt/consul 
@@ -318,14 +353,22 @@ $ sudo vi  /etc/consul.d/consul.hcl
 data_dir = "/opt/consul" 
 bind_addr = "10.13.42.202"
 advertise_addr = "10.13.42.202"
+client_addr = "0.0.0.0"
 node_name = "consul-client-2"
-retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103","10.13.42.201","10.13.42.202"]
+retry_join = ["10.13.42.101","10.13.42.102","10.13.42.103"]
+server = false
+rejoin_after_leave = true
 leave_on_terminate = true
 log_level = "INFO"
 datacenter = "dc-wavve"
 enable_syslog = true
 ports {
+  http = 8500
+  dns = 8600
+  https = -1
+  serf_lan = 8301
   grpc = 8502
+  server = 8300
 }
 
 $ sudo mkdir -p -m 755 /opt/consul 
