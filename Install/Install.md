@@ -86,8 +86,6 @@ $ consul operator raft list-peers
 ### Consul Server 2
 
 ```console
-$ ssh -i ~/.ssh/poc-test.pem ubuntu@10.13.42.102
-  
 $ sudo chown root:root consul 
 $ sudo mv consul /usr/local/bin/ 
 $ consul --version
@@ -156,8 +154,6 @@ $ consul operator raft list-peers
 ### Consul Server 3
 
 ```console
-$ ssh -i ~/.ssh/poc-test.pem ubuntu@10.13.42.102
-  
 $ sudo chown root:root consul 
 $ sudo mv consul /usr/local/bin/ 
 $ consul --version
@@ -226,8 +222,6 @@ $ consul operator raft list-peers
 ### Consul Client 1
 
 ```console
-$ ssh -i ~/.ssh/poc-test.pem ubuntu@10.13.42.201
-  
 $ sudo chown root:root consul 
 $ sudo mv consul /usr/local/bin/ 
 $ consul --version
@@ -290,8 +284,6 @@ $ consul operator raft list-peers
 ### Consul Client 2
 
 ```console
-$ ssh -i ~/.ssh/poc-test.pem ubuntu@10.13.42.202
-  
 $ sudo chown root:root consul 
 $ sudo mv consul /usr/local/bin/ 
 $ consul --version
