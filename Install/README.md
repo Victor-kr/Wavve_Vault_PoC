@@ -456,14 +456,14 @@ $ sudo touch /etc/vault.d/vault.hcl
 $ sudo touch /etc/vault.d/vault.env
 $ sudo vi  /etc/vault.d/vault.hcl
 storage  "consul" {
-  "address" = "10.13.42.101:8500"
-  "path" = "vault_data"
+  address = "127.0.0.1:8500"
+  path = "vault/"
 }
 
 listener "tcp" {
-  "address" = "0.0.0.0:8200"
-  "cluster_address" = "10.13.42.201:8201"
-  "tls_disable" = 1
+  address = "0.0.0.0:8200"
+  cluster_address = "10.13.42.201:8201"
+  tls_disable = "true"
 }
 
 "ui" = true
@@ -491,6 +491,13 @@ $ sudo systemctl status vault
 $ export VAULT_ADDR="http://10.13.42.201:8200"
 $ vault status 
 $vault operator init
+Unseal Key 1: GNxKYsnACporCzHmujTBqhWwfBcQwZdqQfsgpOaMWkdU
+Unseal Key 2: qADOqgFnHhLH2/OxVOSOJxkTwwYgD1LweKVtW/ZKBE9D
+Unseal Key 3: Wxsui8/Zii2UGQuy0VdVFXZpFVR3nIT5PGM9zNssi9eA
+Unseal Key 4: NK37Kt6PSD1AvnEvBG91P8/ugiiax0SHzaWcJuT1Ay/A
+Unseal Key 5: 1PyIUDuMzpTvRtrbiBBPWBz0RnusFJKbYcDLpxoWGeSh
+
+Initial Root Token: hvs.VHgNnWCSdvyJRLSU3cQEDMLA
 ...
 $ vault operator unseal
 ```
@@ -552,14 +559,14 @@ $ sudo touch /etc/vault.d/vault.hcl
 $ sudo touch /etc/vault.d/vault.env
 $ sudo vi  /etc/vault.d/vault.hcl
 storage  "consul" {
-  "address" = "10.13.42.101:8500"
-  "path" = "vault_data"
+  address = "127.0.0.1:8500"
+  path = "vault/"
 }
 
 listener "tcp" {
-  "address" = "0.0.0.0:8200"
-  "cluster_address" = "10.13.42.202:8201"
-  "tls_disable" = 1
+  address = "0.0.0.0:8200"
+  cluster_address = "10.13.42.202:8201"
+  tls_disable = "true"
 }
 
 "ui" = true
