@@ -13,6 +13,10 @@
     - "10.13.42.201" (Client1, Vault Server Active)
     - "10.13.42.202" (Client2, Vault Server Standby)
 
+### 참고 사이트
+
+https://docmoa.github.io/04-HashiCorp/04-Consul/02-Configuration/server.html
+
 
 ### Consul Server 1
 
