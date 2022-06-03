@@ -17,7 +17,7 @@
 ### 포트
 
 |Source|Destination|port|protocol|Direction|Purpose|
-|------|---|---|
+|------|---|---|---|---|---|
 |Client machines|Load balancer|443|tcp|incoming|Request distribution|
 |Load balancer|Vault servers|8200|tcp|incoming|Vault API|
 |Vault servers|Vault servers|8200|tcp|bidirectional|Cluster bootstrapping|
