@@ -602,7 +602,7 @@ $ vault operator unseal
 - Vault Server Active (Consul Client 1)
 
 ```console
-$ sudo chown vault:vault vault-secret-gen
+$ sudo chown -R vault:vault vault-secret-gen
 $ sudo mv vault-secret-gen /etc/vault/plugins/
 $ setcap cap_ipc_lock=+ep /etc/vault/plugins/vault-secrets-gen
 $ export VAULT_ADDR="http://10.13.42.201:8200"
@@ -615,7 +615,7 @@ $ vault secrets enable  -path="gen" -plugin-name="secrets-gen" plugin
 - Vault Server Standby (Consul Client 2)
 
 ```console
-$ sudo chown vault:vault vault-secret-gen
+$ sudo chown -R vault:vault vault-secret-gen
 $ sudo mv vault-secret-gen /etc/vault/plugins/
 $ sudo setcap cap_ipc_lock=+ep /etc/vault/plugins/vault-secrets-gen
 $ export VAULT_ADDR="http://10.13.42.202:8200"
