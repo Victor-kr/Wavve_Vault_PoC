@@ -604,6 +604,7 @@ $ vault operator unseal
 $ sudo mv vault-secrets-gen /etc/vault/plugins/
 $ sudo chown -R vault:vault /etc/vault/plugins/vault-secrets-gen
 $ sudo setcap cap_ipc_lock=+ep /etc/vault/plugins/vault-secrets-gen
+$ sudo chmod 777 /etc/vault/plugins/vault-secrets-gen
 $ export VAULT_ADDR="http://10.13.42.201:8200"
 $ vault login
 $ export SHA256=$(shasum -a 256 "/etc/vault/plugins/vault-secrets-gen" | cut -d' ' -f1)
@@ -617,6 +618,7 @@ $ vault secrets enable  -path="gen" -plugin-name="secrets-gen" plugin
 $ sudo mv vault-secrets-gen /etc/vault/plugins/
 $ sudo chown -R vault:vault /etc/vault/plugins/vault-secrets-gen
 $ sudo setcap cap_ipc_lock=+ep /etc/vault/plugins/vault-secrets-gen
+$ sudo chmod 777 /etc/vault/plugins/vault-secrets-gen
 $ export VAULT_ADDR="http://10.13.42.202:8200"
 $ vault login
 $ export SHA256=$(shasum -a 256 "/etc/vault/plugins/vault-secrets-gen" | cut -d' ' -f1)
