@@ -4,8 +4,12 @@
 Admin Server 에서 BationHost 에 접근 후 신규 유저를 생성 하고 SSH 접속을 위한 정보를 얻어낸 후 클라이언트에 전달하면 된다.
 
 ```console  
-$ export VAULT_ADDR="http://172.31.44.220:8200"
-$ vault login -method=userpass username=linuxadmin password=linuxadmin
+$ export VAULT_ADDR="http://172.31.44.220:8200" 
+$ curl \
+ --request POST \
+ --data '{"password": "linuxadmin"}' \
+ http://$VAULT_ADDR:8200/v1/auth/userpass/login/linuxadmin
+ 
 Key                    Value
 ---                    -----
 token                  hvs.CAESIJHL3EBy01oB7Lq2MJ5u2r9AxCRo76bJxwg_nF6rW_8RGh4KHGh2cy5NTHg3dWlpbjhzcVFzY01OeFhCYmx1czk
