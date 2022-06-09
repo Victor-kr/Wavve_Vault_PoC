@@ -25,6 +25,19 @@
 |Consul and Vault servers|Consul and Vault servers|8301|tcp, udp|bidirectional|Consul LAN gossip|
 
 
+### 필요 파일 전달
+
+```
+scp -i ~/.ssh/poc-test.pem -pv ~/consul ubuntu@10.13.42.101:/home/ubuntu/consul
+scp -i ~/.ssh/poc-test.pem -pv ~/consul ubuntu@10.13.42.102:/home/ubuntu/consul
+scp -i ~/.ssh/poc-test.pem -pv ~/consul ubuntu@10.13.42.103:/home/ubuntu/consul
+scp -i ~/.ssh/poc-test.pem -pv ~/vault ubuntu@10.13.42.201:/home/ubuntu/vault
+scp -i ~/.ssh/poc-test.pem -pv ~/vault  ubuntu@10.13.42.202:/home/ubuntu/vault
+scp -i ~/.ssh/poc-test.pem -pv ~/vault-secrets-gen ubuntu@10.13.42.201:/home/ubuntu/vault-secrets-gen
+scp -i ~/.ssh/poc-test.pem -pv ~/vault-secrets-gen ubuntu@10.13.42.202:/home/ubuntu/vault-secrets-gen
+```
+
+
 ### Consul Server 1
 
 ```console 
