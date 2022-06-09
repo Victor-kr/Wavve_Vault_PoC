@@ -42,8 +42,8 @@ $ vault-ssh-helper -verify-only -config=/root/vault/config.hcl -dev
 ```console
 // 리눅스 표준 SSH 모듈인 common-auth 를 주석 처리
 // 인증시 vault-ssh-helper 를 사용하도록 설정
-$ sudo vi /etc/pam.d/sshd  
-# Standard Un*x authentication.
+$ sudo vi /etc/pam.d/sshd
+
 #@include common-auth
 auth requisite pam_exec.so quiet expose_authtok log=/tmp/vaultssh.log /usr/bin/vault-ssh-helper -config=/root/vault/config.hcl -dev
 auth optional pam_unix.so not_set_pass use_first_pass nodelay
