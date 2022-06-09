@@ -22,7 +22,7 @@ $ chmod +x /usr/bin/vault-ssh-helper
 // vault-ssh-helper 구성
 $ mkdir /root/vault
 $ tee /root/vault/config.hcl <<EOF
-vault_addr = "http://172.31.37.26:8200"
+vault_addr = "http://10.13.42.202:8200"
 ssh_mount_point = "ssh-client-onetime-pass" 
 tls_skip_verify = true
 allowed_cidr_list="0.0.0.0/0"
