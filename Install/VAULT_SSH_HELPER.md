@@ -3,6 +3,15 @@
 
 - 사전에 env provision 필요
 
+
+### 필요한 파일 전달
+
+```
+scp -i ~/.ssh/poc-test.pem -pv ~/vault-ssh-helper ubuntu@10.13.42.102:/home/ubuntu/vault-ssh-helper
+```
+
+### Vault-SSH-Helper 설치
+
 ```console
 // 접속할 사용자 생성
 $ sudo su
