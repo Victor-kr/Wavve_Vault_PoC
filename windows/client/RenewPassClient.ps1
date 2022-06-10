@@ -3,6 +3,31 @@ Clear-Host
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+
+if (-not("dummy" -as [type])) {
+    add-type -TypeDefinition @"
+using System;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+public static class Dummy {
+    public static bool ReturnTrue(object sender,
+        X509Certificate certificate,
+        X509Chain chain,
+        SslPolicyErrors sslPolicyErrors) { return true; }
+
+    public static RemoteCertificateValidationCallback GetDelegate() {
+        return new RemoteCertificateValidationCallback(Dummy.ReturnTrue);
+    }
+}
+"@
+}
+
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = [dummy]::GetDelegate()
+
+
+
 $ErrorActionPreference = 'Continue'
 $VerbosePreference = 'Continue' 
 $savedPath = "C:\Wavve\windows\client"
@@ -52,14 +77,18 @@ function addNewUser {
             if($?) {
                 Write-Host "The user you created was added to an existing group - ${GROUPNAME}"
 
-                # Register Schedule
-                $action = New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-ExecutionPolicy Unrestricted -File "C:\Wavve\windows\server\renewPassServer.ps1"'
-                $trigger = New-ScheduledTaskTrigger -AtLogOn -User ${USERNAME}
-                $principal = New-ScheduledTaskPrincipal -UserId ${USERNAME} -RunLevel Highest
-                Register-ScheduledTask -Action $action -Trigger $trigger -Principal $principal -TaskName "ChangePassword" -Description "Change Password"
-                if($?) {
-                    Write-Host "The ChangePassword schedule has been registered"
-                    return 1
+                $taskName = "ChangePassword";
+                $task = Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName } | Select-Object -First 1
+                if ($null -eq $task) {
+                    # Register Schedule
+                    $action = New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-ExecutionPolicy Unrestricted -File "C:\Wavve\windows\server\renewPassServer.ps1"'
+                    $trigger = New-ScheduledTaskTrigger -AtLogOn -User ${USERNAME}
+                    $principal = New-ScheduledTaskPrincipal -UserId ${USERNAME} -RunLevel Highest
+                    Register-ScheduledTask -Action $action -Trigger $trigger -Principal $principal -TaskName $taskName -Description "Change Password"
+                    if($?) {
+                        Write-Host "The ChangePassword schedule has been registered"
+                        return 1
+                    }
                 }
             }
         }
@@ -100,6 +129,11 @@ function changePassword {
         $USERNAME = $args[0]
         $PASSWORD = $args[1] 
         $ObjLocalUser = $null
+
+        $sessionID = ((quser  | Where-Object { $_ -match $USERNAME }) -split ' +')[2]
+        if ($sessionID) {
+            Logoff $sessionID
+        }
         
         $ObjLocalUser = Get-LocalUser $USERNAME -ErrorAction SilentlyContinue 
 
@@ -109,14 +143,18 @@ function changePassword {
             if($?) {
                 Write-Host "The password for the existing account has been changed - ${USERNAME}"
 
-                # Register Schedule
-                $action = New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-ExecutionPolicy Unrestricted -File "C:\wavePOC-master\server\renewPassServer.ps1"'
-                $trigger = New-ScheduledTaskTrigger -AtLogOn  -User ${USERNAME}
-                $principal = New-ScheduledTaskPrincipal -UserId ${USERNAME} -RunLevel Highest
-                Register-ScheduledTask -Action $action -Trigger $trigger -Principal $principal -TaskName "ChangePassword" -Description "Change Password"
-                if($?) {
-                    Write-Host "The ChangePassword schedule has been registered"
-                    return 1
+                $taskName = "ChangePassword";
+                $task = Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName } | Select-Object -First 1
+                if ($null -eq $task) {
+                    # Register Schedule
+                    $action = New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-ExecutionPolicy Unrestricted -File "C:\Wavve\windows\server\renewPassServer.ps1"'
+                    $trigger = New-ScheduledTaskTrigger -AtLogOn -User ${USERNAME}
+                    $principal = New-ScheduledTaskPrincipal -UserId ${USERNAME} -RunLevel Highest
+                    Register-ScheduledTask -Action $action -Trigger $trigger -Principal $principal -TaskName $taskName -Description "Change Password"
+                    if($?) {
+                        Write-Host "The ChangePassword schedule has been registered"
+                        return 1
+                    }
                 }
             }
 
