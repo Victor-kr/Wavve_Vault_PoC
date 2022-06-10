@@ -34,7 +34,7 @@
 		- 리모트 연결을 활성화
 	- 시스템 환경변수로 아래 변수를 추가 
 		- VAULT_ADDR : http://13.209.40.188:8200
-		- VAULT_TOKEN :  hvs.CAESINncbVnmLFviuqyJJ1jvYYXKccWBQtEPu0sWw9fP1CAxGh4KHGh2cy5NaUQzOUV3SXh4ckpJVWFjdWN2dlhTaFQ
+		- VAULT_TOKEN :  vault token create -policy=rotate-windows -period=76800h
 	- Vault UI 에 두 서버의 Administrator Cred 를 입력
 		- Client
 			- Path : systemcred/windows/172.31.1.183/Administrator_creds
