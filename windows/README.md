@@ -25,3 +25,38 @@
 ## Linux 가상 시나리오
 - 클라이언트 
 - 서버
+
+## 테스트 환경 구성
+- Windows  공통설정
+	- 방화벽 Off
+	- 두 호스트 간 Ping
+	- C:\wavePOC-master\Config.ps1 실행
+		- 리모트 연결을 활성화
+	- 시스템 환경변수로 아래 변수를 추가 
+		- VAULT_ADDR : http://13.209.40.188:8200
+		- VAULT_TOKEN :  hvs.CAESINncbVnmLFviuqyJJ1jvYYXKccWBQtEPu0sWw9fP1CAxGh4KHGh2cy5NaUQzOUV3SXh4ckpJVWFjdWN2dlhTaFQ
+	- Vault UI 에 두 서버의 Administrator Cred 를 입력
+		- Client
+			- Path : systemcred/windows/172.31.1.183/Administrator_creds
+			- Key : Administrator
+			- Vaule : qKTFhbnFg;(
+		- Server
+			- Path : systemcred/windows/172.31.1.184/Administrator_creds
+			- Key : Administrator
+			- Vaule : lE8fMoJ05D2oqAr499D43FTBWszjDaeWMsm7
+- Windows Server
+	- Schedule Task 
+		- General
+			- Name : RegenPassword
+			- Security Options :  Users
+		- Trigger : At log on
+		- Actions
+			- Action
+				- Start a program
+			- Settings
+				- Program/script
+					- C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+				- Argument
+					- -ExecutionPolicy Unrestricted -File "C:\wavePOC-master\server\renewPassServer.ps1"
+- Windows Client
+	- C:\wavePOC-master\client\RenewPassClient.bat 파일 실행
