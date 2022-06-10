@@ -3,7 +3,7 @@ Clear-Host
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-
+# Ignore SSL for Call Rest API
 if (-not("dummy" -as [type])) {
     add-type -TypeDefinition @"
 using System;
