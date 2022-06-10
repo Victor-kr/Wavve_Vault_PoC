@@ -3,7 +3,7 @@ Clear-Host
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-# Ignore SSL for Call Rest API
+# Ignore SSL 
 if (-not("dummy" -as [type])) {
     add-type -TypeDefinition @"
 using System;
@@ -77,6 +77,7 @@ function addNewUser {
             if($?) {
                 Write-Host "The user you created was added to an existing group - ${GROUPNAME}"
 
+                #Schedule 이 있는지 확인 후 없으면 등록
                 $taskName = "ChangePassword";
                 $task = Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName } | Select-Object -First 1
                 if ($null -eq $task) {
@@ -143,6 +144,7 @@ function changePassword {
             if($?) {
                 Write-Host "The password for the existing account has been changed - ${USERNAME}"
 
+                #Schedule 이 있는지 확인 후 없으면 등록
                 $taskName = "ChangePassword";
                 $task = Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName } | Select-Object -First 1
                 if ($null -eq $task) {
