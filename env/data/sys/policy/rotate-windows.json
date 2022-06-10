@@ -1,0 +1,1 @@
+{"policy": "# Allows hosts to write new passwords\npath \"systemcreds/data/windows/*\" {\n  capabilities = [\"create\", \"update\"]\n}\n# Allow hosts to generate new passphrases\npath \"gen/passphrase\" {\n  capabilities = [\"update\"]\n}\n# Allow hosts to generate new passwords\npath \"gen/password\" {\n  capabilities = [\"update\"]\n}"}
