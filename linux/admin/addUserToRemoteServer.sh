@@ -303,8 +303,8 @@ sudo chmod 777 "${directory}/.ssh"
 #---------------------------------------------------------------
 # Write user information to vault
 #---------------------------------------------------------------
-export VAULT_ADDR="${vault_addr:-http://172.31.44.220:8200}"
-export VAULT_TOKEN="${vault_token:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K}"
+export VAULT_ADDR="${vault_addr}"
+export VAULT_TOKEN="${vault_token}"
 
 jq -n --arg name "${name}" \
 --arg directory "${directory}"  \
