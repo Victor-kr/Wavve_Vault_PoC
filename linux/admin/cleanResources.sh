@@ -7,7 +7,7 @@
 function vault-delete-secret() {
   path="$1"
   shift
-  curl \
+  curl -k \
       --silent \
       --request DELETE \
       --header 'Accept: application/json'  \
@@ -19,7 +19,7 @@ function vault-delete-role() {
   rolepath="$1"
   shift
 
-  curl \
+  curl -k \
       --silent \
       --request DELETE \
       --header 'Accept: application/json'  \
