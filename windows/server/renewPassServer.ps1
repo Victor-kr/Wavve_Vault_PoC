@@ -1,7 +1,7 @@
 Clear-Host
 
 # Ignore SSL 
-add-type @"
+Add-Type @"
    using System.Net;
    using System.Security.Cryptography.X509Certificates;
    public class TrustAllCertsPolicy : ICertificatePolicy {
