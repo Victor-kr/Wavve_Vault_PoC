@@ -44,7 +44,8 @@ $ sudo vi /etc/pam.d/sshd
 ...
 #@include common-auth
 
-auth requisite pam_exec.so quiet expose_authtok log=/tmp/vaultssh.log /usr/bin/vault-ssh-helper -config=/root/vault/config.hcl -dev // https 인 경우 -dev 를 제거
+// https 인 경우 -dev 를 제거
+auth requisite pam_exec.so quiet expose_authtok log=/tmp/vaultssh.log /usr/bin/vault-ssh-helper -config=/root/vault/config.hcl -dev
 auth optional pam_unix.so not_set_pass use_first_pass nodelay
 ...
 
