@@ -3,6 +3,15 @@
 #---------------------------------------------------------------
 # Functions
 #---------------------------------------------------------------
+function curlWapper() {
+  url="${@: -1}"
+  if [[ $url = https://* ]]; then
+    curl -k $*
+  else
+    curl $*
+  fi
+}
+
 function backup-sshd-config(){
   file="$1"
   if [ -f ${file} ]
@@ -68,7 +77,7 @@ done
 export VAULT_ADDR=${VAULT_ADDR:-http://172.31.44.220:8200} 
 
 sudo rm -rf /etc/ssh/trusted-user-ca-keys.pem
-curl -o ${HOME}/trusted-user-ca-keys.pem ${VAULT_ADDR}/v1/ssh-client-signer/public_key
+curlWapper -o ${HOME}/trusted-user-ca-keys.pem ${VAULT_ADDR}/v1/ssh-client-signer/public_key
 sudo mv ${HOME}/trusted-user-ca-keys.pem /etc/ssh/trusted-user-ca-keys.pem
 
 backup-sshd-config "${sshd_config_file}"
