@@ -10,7 +10,7 @@ function vault-put-secret() {
   payload="$*"
 
   set +e
-    curl \
+    curl -k \
       --request POST \
       --header "X-Vault-Token: ${VAULT_TOKEN}" \
       --data @"${payload}" \
@@ -21,7 +21,7 @@ function vault-put-secret() {
 function vault-get-secret() {
   path="$1"
   shift
-  curl \
+  curl -k \
       --silent \
       --request GET \
       --header 'Accept: application/json'  \
@@ -32,7 +32,7 @@ function vault-get-secret() {
 function vault-delete-secret() {
   path="$1"
   shift
-  curl \
+  curl -k \
       --silent \
       --request DELETE \
       --header 'Accept: application/json'  \
@@ -44,7 +44,7 @@ function vault-delete-role() {
   rolepath="$1"
   shift
 
-  curl \
+  curl -k \
       --silent \
       --request DELETE \
       --header 'Accept: application/json'  \
@@ -55,7 +55,7 @@ function vault-delete-role() {
 function vault-get-role-id() {
   path="$1"
   shift
-  res=$(curl \
+  res=$(curl -k \
       --silent \
       --request GET \
       --header 'Accept: application/json'  \
@@ -67,7 +67,7 @@ function vault-get-role-id() {
 function vault-get-role-secret-id() {
   path="$1"
   shift
-  res=$(curl \
+  res=$(curl -k \
       --silent \
       --request POST \
       --header 'Accept: application/json'  \
@@ -92,7 +92,7 @@ function vault-approle-login() {
     --arg secret_id $secret_id  \
     '{"role_id": $ARGS.named["role_id"],"secret_id": $ARGS.named["secret_id"]}' > "${payload}"
  
-  curl \
+  curl -k \
     --silent \
     --request POST \
     --data @"${payload}" \
@@ -149,7 +149,7 @@ function vault-sign-ssh-key() {
     --arg valid_principals "$ssh_user" \
     '{"public_key": $ARGS.named["public_key"],"valid_principals": $ARGS.named["valid_principals"]}' > "${payload}"
 
-  res=$(curl \
+  res=$(curl -k \
     --silent \
     --request POST \
     --header "X-Vault-Token: ${VAULT_TOKEN}" \
@@ -335,4 +335,4 @@ else
 fi 
 
 sudo chmod 700 "${directory}" 
-sudo chmod 700 "${directory}/.ssh" 
+sudo chmod 700 "${directory}/.ssh"
