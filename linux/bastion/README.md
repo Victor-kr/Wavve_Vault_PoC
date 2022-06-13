@@ -29,6 +29,7 @@ allowed_roles = "*"
 EOF
 
 // vault-ssh-helper 구성 테스트
+// https 인 경우 -dev 를 제거
 $ vault-ssh-helper -verify-only -config=/root/vault/config.hcl -dev
 2021/10/18 06:25:40 ==> WARNING: Dev mode is enabled!
 2021/10/18 06:25:40 [INFO] using SSH mount point: ssh
@@ -42,7 +43,8 @@ $ vault-ssh-helper -verify-only -config=/root/vault/config.hcl -dev
 $ sudo vi /etc/pam.d/sshd
 ...
 #@include common-auth
-auth requisite pam_exec.so quiet expose_authtok log=/tmp/vaultssh.log /usr/bin/vault-ssh-helper -config=/root/vault/config.hcl -dev
+
+auth requisite pam_exec.so quiet expose_authtok log=/tmp/vaultssh.log /usr/bin/vault-ssh-helper -config=/root/vault/config.hcl -dev // https 인 경우 -dev 를 제거
 auth optional pam_unix.so not_set_pass use_first_pass nodelay
 ...
 
