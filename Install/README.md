@@ -659,7 +659,7 @@ $ sudo touch /var/log/vault/vault_audit.log
 $ sudo chown vault:vault /var/log/vault/vault_audit.log
 $ vault audit enable -path=file1 file file_path=/var/log/vault/vault_audit.log
 $ vault audit list 
-$ sudo tail -f /var/log/valut/vault_audit.log | jq
+$ sudo tail -f /var/log/vault/vault_audit.log | jq
 ```
 
 ### 참고 사이트
