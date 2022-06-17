@@ -13,6 +13,16 @@
     - "10.13.42.202" (Client2, Vault Server Standby)
 
 
+### Credential
+
+- Unseal Key 1: GNxKYsnACporCzHmujTBqhWwfBcQwZdqQfsgpOaMWkdU
+- Unseal Key 2: qADOqgFnHhLH2/OxVOSOJxkTwwYgD1LweKVtW/ZKBE9D
+- Unseal Key 3: Wxsui8/Zii2UGQuy0VdVFXZpFVR3nIT5PGM9zNssi9eA
+- Unseal Key 4: NK37Kt6PSD1AvnEvBG91P8/ugiiax0SHzaWcJuT1Ay/A
+- Unseal Key 5: 1PyIUDuMzpTvRtrbiBBPWBz0RnusFJKbYcDLpxoWGeSh
+- Initial Root Token: hvs.VHgNnWCSdvyJRLSU3cQEDMLA
+
+
 ### 포트
 
 |Source|Destination|port|protocol|Direction|Purpose|
@@ -636,6 +646,19 @@ $ export VAULT_ADDR="http://10.13.42.202:8200"
 $ vault login
 $ export SHA256=$(shasum -a 256 "/etc/vault/plugins/vault-secrets-gen" | cut -d' ' -f1)
 $ vault plugin register -sha256="${SHA256}" -command="vault-secrets-gen" secret secrets-gen
+```
+
+### Log Enable
+
+```console
+$ export VAULT_ADDR="http://10.13.42.202:8200"
+$ vault login
+$ sudo mkdir -p /var/log/valut
+$ sudo touch /var/log/valut/vault_audit.log 
+$ sudo chown vault.vault /var/log/valut/vault_audit.log
+$ vault audit enable -path=file1 file file_path=/var/log/valut/vault_audit.log
+$ vault audit list 
+$ sudo tail -f /var/log/valut/vault_audit.log | jq
 ```
 
 ### 참고 사이트
