@@ -651,11 +651,12 @@ $ vault plugin register -sha256="${SHA256}" -command="vault-secrets-gen" secret 
 ### Log Enable
 
 ```console
+//Active Server 에서 실행해야 됨
 $ export VAULT_ADDR="http://10.13.42.202:8200"
 $ vault login
 $ sudo mkdir -p /var/log/vault
 $ sudo touch /var/log/vault/vault_audit.log 
-$ sudo chown vault.vault /var/log/vault/vault_audit.log
+$ sudo chown vault:vault /var/log/vault/vault_audit.log
 $ vault audit enable -path=file1 file file_path=/var/log/vault/vault_audit.log
 $ vault audit list 
 $ sudo tail -f /var/log/valut/vault_audit.log | jq
