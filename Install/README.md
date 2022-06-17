@@ -22,6 +22,12 @@
 - Unseal Key 5: 1PyIUDuMzpTvRtrbiBBPWBz0RnusFJKbYcDLpxoWGeSh
 - Initial Root Token: hvs.VHgNnWCSdvyJRLSU3cQEDMLA
 
+### Health Check
+
+```console
+$ export VAULT_ADDR="http://internal-poc-vault-alb-1279828201.ap-northeast-2.elb.amazonaws.com"
+$ curl $VAULT_ADDR/v1/sys/health
+```
 
 ### 포트
 
