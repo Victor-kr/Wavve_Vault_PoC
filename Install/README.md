@@ -25,7 +25,7 @@
 ### Health Check
 
 ```console
-$ export VAULT_ADDR="http://internal-poc-vault-alb-1279828201.ap-northeast-2.elb.amazonaws.com"
+$ export VAULT_ADDR="http://internal-poc-vault-alb-1279828201.ap-northeast-2.elb.amazonaws.com:443"
 $ curl $VAULT_ADDR/v1/sys/health
 ```
 
