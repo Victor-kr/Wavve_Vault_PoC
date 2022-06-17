@@ -648,7 +648,7 @@ $ export SHA256=$(shasum -a 256 "/etc/vault/plugins/vault-secrets-gen" | cut -d'
 $ vault plugin register -sha256="${SHA256}" -command="vault-secrets-gen" secret secrets-gen
 ```
 
-### Log Enable
+### File 로그 활성화
 
 ```console
 //Active Server 에서 실행해야 됨
