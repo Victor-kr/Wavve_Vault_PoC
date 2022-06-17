@@ -676,8 +676,9 @@ $ sudo tail -f /var/log/vault/vault_audit.log | jq
 
 ### Load Balancer 설정
 
-- Internet Facing Load Balancer 와 Private IP 를 연결하는 경우 NAT Gateway 를 Private Subnet Association 라우팅에 추가 및 아래와 같이 설정
-- Destination : 0.0.0.0/0 , Target : natgateway
+- Internet Facing Load Balancer 와 Private IP 를 연결하는 경우  설정
+  - NAT Gateway 를 Private Subnet Association 된 라우팅에 추가
+  - 라우트 룰에 Destination : 0.0.0.0/0 , Target : natgateway 추가
 - ALB 시큐리티 그룹에 아래와 같이 설정 필요
 
 |Source|Destination|port|protocol|Direction|Purpose|
