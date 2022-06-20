@@ -49,7 +49,7 @@ $ curl $VAULT_ADDR/v1/sys/health
 
 ### 포트
 
-- 서버 관련 포트 작업
+서버 관련 포트 작업
 
 |Source|Destination|port|protocol|Direction|Purpose|
 |------|---|---|---|---|---|
@@ -60,15 +60,15 @@ $ curl $VAULT_ADDR/v1/sys/health
 |Consul and Vault servers|Consul servers|8300|tcp|incoming|Consul server RPC|
 |Consul and Vault servers|Consul and Vault servers|8301|tcp, udp|bidirectional|Consul LAN gossip|
 
-- 테스트 서버 관련 포트 작업
+테스트 서버 관련 포트 작업
 
 |Source|Destination|port|protocol|Direction|Purpose|
 |------|---|---|---|---|---|
 |admin|bastion|22|SSH|incoming|Linux 테스트 서버 SSH 접근허용|
 |bastion|SSH server|SSH|tcp|Linux 테스트 서버 SSH 접근허용|
 
-- 윈도우 테스트 서버 관련 포트 작업
-- 
+윈도우 테스트 서버 관련 포트 작업
+
 |Source|Destination|port|protocol|Direction|Purpose|
 |------|---|---|---|---|---|
 |client|server|5985,5986|WinRM|incoming|Windows 테스트 서버 원격 접근허용| 
