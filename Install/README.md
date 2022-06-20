@@ -1,16 +1,34 @@
 ## Vault 오프라인 설치과정
 
-### 필요파일
+### 필요 파일
 
 1. consul binary
 2. vault binary
 3. vautl-secret-gen binary
-4. Consul Members 
-    - "10.13.42.101" (Server1)
-    - "10.13.42.102" (Server2)
-    - "10.13.42.103" (Server3)
-    - "10.13.42.201" (Client1, Vault Server Active)
-    - "10.13.42.202" (Client2, Vault Server Standby)
+
+
+### 구성
+
+1. Consul Members 
+  - "10.13.42.101" (Server1)
+  - "10.13.42.102" (Server2)
+  - "10.13.42.103" (Server3)
+  - "10.13.42.201" (Client1, Vault Server Active)
+  - "10.13.42.202" (Client2, Vault Server Standby)
+2. Windows Test Servers
+  - 15.165.117.4 (10.13.42.46)
+    - vault/Wavve0609!
+    - Administrator/3I4fqUWNf;6TL&wAtpUdvhZ@V(h5b2OB
+  - 13.125.195.213 (10.13.42.44)
+    - vault/Wavve0609!
+    - Administrator/!jEpa=;J3M.VLi6Wies$YtCG$X=i;t$D
+4. Linux Test Servers
+  - admin
+	- ssh -i ~/.ssh/poc-test.pem ubuntu@10.13.42.101
+  - bastion
+	- ssh -i ~/.ssh/poc-test.pem ubuntu@10.13.42.102
+  - ssh server
+	- ssh -i ~/.ssh/poc-test.pem ubuntu@10.13.42.103
 
 
 ### Credential
@@ -31,14 +49,30 @@ $ curl $VAULT_ADDR/v1/sys/health
 
 ### 포트
 
+- 서버 관련 포트 작업
+
 |Source|Destination|port|protocol|Direction|Purpose|
 |------|---|---|---|---|---|
-|Client machines|Load balancer|443|tcp|incoming|Request distribution|
+|Client machines|Load balancer|443|HTTP|incoming|Request distribution|
 |Load balancer|Vault servers|8200|tcp|incoming|Vault API|
 |Vault servers|Vault servers|8200|tcp|bidirectional|Cluster bootstrapping|
 |Vault servers|Vault servers|8201|tcp|bidirectional|Raft, replication, request forwarding|
 |Consul and Vault servers|Consul servers|8300|tcp|incoming|Consul server RPC|
 |Consul and Vault servers|Consul and Vault servers|8301|tcp, udp|bidirectional|Consul LAN gossip|
+
+- 테스트 서버 관련 포트 작업
+
+|Source|Destination|port|protocol|Direction|Purpose|
+|------|---|---|---|---|---|
+|admin|bastion|22|SSH|incoming|Linux 테스트 서버 SSH 접근허용|
+|bastion|SSH server|SSH|tcp|Linux 테스트 서버 SSH 접근허용|
+
+- 윈도우 테스트 서버 관련 포트 작업
+- 
+|Source|Destination|port|protocol|Direction|Purpose|
+|------|---|---|---|---|---|
+|client|server|5985,5986|WinRM|incoming|Windows 테스트 서버 원격 접근허용| 
+
 
 
 ### 필요 파일 전달
