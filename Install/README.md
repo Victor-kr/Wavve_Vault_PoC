@@ -40,13 +40,6 @@
 - Unseal Key 5: 1PyIUDuMzpTvRtrbiBBPWBz0RnusFJKbYcDLpxoWGeSh
 - Initial Root Token: hvs.VHgNnWCSdvyJRLSU3cQEDMLA
 
-### Health Check
-
-```console
-$ export VAULT_ADDR="http://internal-poc-vault-alb-1279828201.ap-northeast-2.elb.amazonaws.com:443"
-$ curl $VAULT_ADDR/v1/sys/health
-```
-
 ### 포트
 
 서버 관련 포트 작업
@@ -704,6 +697,16 @@ $ export VAULT_ADDR="http://10.13.42.202:8200"
 $ vault login
 $ export SHA256=$(shasum -a 256 "/etc/vault/plugins/vault-secrets-gen" | cut -d' ' -f1)
 $ vault plugin register -sha256="${SHA256}" -command="vault-secrets-gen" secret secrets-gen
+```
+
+
+### Health Check
+
+설치후 Linux 테스트 인스턴스에서 아래와 같이 테스트
+
+```console
+$ export VAULT_ADDR="http://internal-poc-vault-alb-1279828201.ap-northeast-2.elb.amazonaws.com:443"
+$ curl $VAULT_ADDR/v1/sys/health
 ```
 
 ### File 로그 활성화
