@@ -5,7 +5,7 @@ Admin Server 에서 BationHost 에 접근 후 신규 유저를 생성 하고 SSH
 
 ```console  
 $ export VAULT_ADDR="http://internal-poc-vault-alb-1279828201.ap-northeast-2.elb.amazonaws.com:443"
-$ curl --request POST --data '{"password": "linuxadmin"}' $VAULT_ADDR/v1/auth/userpass/login/linuxadmin
+$ curl --request POST --data '{"password": "linuxadmin"}' $VAULT_ADDR/v1/auth/userpass/login/linuxadmin | jq .auth.client_token
  
 Key                    Value
 ---                    -----
