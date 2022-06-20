@@ -73,6 +73,24 @@ $ curl $VAULT_ADDR/v1/sys/health
 |------|---|---|---|---|---|
 |client|server|5985,5986|WinRM|incoming|Windows 테스트 서버 원격 접근허용| 
 
+Target Group 설정
+
+```
+ Protocol : HTTP
+ Port : 8200
+ health Check Path : /v1/sys/health
+```
+
+Load Balancer 설정
+
+- Internet Facing Load Balancer 와 Private IP 를 연결하는 경우  설정
+  - NAT Gateway 를 Private Subnet Association 된 라우팅에 추가
+  - 라우트 룰에 Destination : 0.0.0.0/0 , Target : natgateway 추가
+- ALB 시큐리티 그룹에 아래와 같이 설정 필요
+
+|Source|Destination|port|protocol|Direction|Purpose|
+|------|---|---|---|---|---|
+|NAT Gateway|ALB|443|HTTPS|incoming|Linux 테스트 서버에서 ALB 접근| 
 
 
 ### 필요 파일 전달
@@ -702,22 +720,6 @@ $ vault audit list
 $ sudo tail -f /var/log/vault/vault_audit.log | jq
 ```
 
-### Target Group 설정
-
-- Protocol : HTTP
-- Port : 8200
-- health Check Path : /v1/sys/health
-
-### Load Balancer 설정
-
-- Internet Facing Load Balancer 와 Private IP 를 연결하는 경우  설정
-  - NAT Gateway 를 Private Subnet Association 된 라우팅에 추가
-  - 라우트 룰에 Destination : 0.0.0.0/0 , Target : natgateway 추가
-- ALB 시큐리티 그룹에 아래와 같이 설정 필요
-
-|Source|Destination|port|protocol|Direction|Purpose|
-|------|---|---|---|---|---|
-|NAT Gateway|ALB|443|HTTPS|incoming|Linux 테스트 서버에서 ALB 접근| 
 
 ### 참고 사이트
 
