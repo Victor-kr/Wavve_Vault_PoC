@@ -68,7 +68,7 @@ function vault-approle-login() {
   shift
   token_ttl="$1"
   shift
-  token_max_ttl="$*"  
+  token_max_ttl="${token_ttl}"
 
   postfix=$(echo $RANDOM | md5sum | head -c 20; echo;) 
 
@@ -167,20 +167,15 @@ fi
 #--------------------------------------------------------------------------
 #  Check jq & at command installed
 #-------------------------------------------------------------------------- 
+echo ""
+echo "***Check required programs**********************************"
+
 programs=("jq" "at" "curl" "sshpass")
 for program in "${programs[@]}"; do
   if which "${program}" >/dev/null; then
     echo "${program} already installed" 
   else
-    if command -v apt >/dev/null; then
-      sudo apt update 
-      sudo apt install -y "${program}"
-    elif command -v apt-get >/dev/null; then
-      sudo apt-get update 
-      sudo apt-get install -y "${program}"
-    elif command -v yum >/dev/null; then
-      sudo yum install -y "${program}"
-    fi
+    echo "${program} is not installed. please install this package.."
   fi
 done
 
@@ -202,34 +197,28 @@ export VAULT_TOKEN=$APP_TOKEN
 #   * 임시 유저에 OTP 를 부여하고 싶다.   
 #--------------------------------------------------------------------------
 
-
 #--------------------------------------------------------------------------
-#  Check user already exist
+#  사용자가 이미 존재하는지 확인 > 존재하지 않으면 랜덤 postfix 붙임
 #--------------------------------------------------------------------------
-masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./checkUserExistInRemoteServer.sh -n $username -v $server
-
+echo ""
 echo "***Check user already exist**********************************"
 
-checkuser=0
+masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
+checkuser=$(sshpass -p $masterpass ssh  -o StrictHostKeyChecking=no ubuntu@$server "bash -s" -- < $PWD/checkUserExistInRemoteServer.sh -n $username -v $server)
 
-echo "Result: $?"
-
-if [ "$?" == "0" ]; then
+if [ "$checkuser" == "userNotExist" ]; then
   postfix=$(echo $RANDOM | md5sum | head -c 20; echo;)
   username="${username}_${postfix}"
   echo "The user is not exist. Keep going to make a temporary user - username : $username"
-elif [ "$?" == "2" ]; then
-  echo "The user is already exist - username : $username"
-  checkuser=1
-else 
-  echo "Please check input parameter - username : $username, server : $server"
-  exit 1
+else
+  echo "The user is already exist - username : $username" 
 fi
 
+
 #--------------------------------------------------------------------------
-#  Create OTP Role
+#  OTP Role 생성
 #--------------------------------------------------------------------------
+echo ""
 echo "***Creating a otp role for the user******************************"
 
 servername="${server//./_}" 
@@ -242,9 +231,10 @@ jq -n \
   --arg key_type "otp" \
   --arg port 22 \
   '{"cidr_list": $ARGS.named["cidr_list"],"default_user": $ARGS.named["default_user"],"allowed_user": $ARGS.named["allowed_user"],"key_type": $ARGS.named["key_type"],"port": $ARGS.named["port"]}' > "$payload"
-  
-vault-provision "ssh-client-onetime-pass/roles/otp_role_${servername}_${username}" "/tmp/otp_role_${servername}_${username}.json"
 
+cat $payload
+echo "vault-provision  ssh-client-onetime-pass/roles/otp_role_${servername}_${username}"
+vault-provision "ssh-client-onetime-pass/roles/otp_role_${servername}_${username}" "/tmp/otp_role_${servername}_${username}.json"
 rm -rf "$payload"
 
 if [ ! $? == "0" ]; then
@@ -257,21 +247,22 @@ fi
 #--------------------------------------------------------------------------
 #  유저가 존재하지 않는 경우 - 임시 유저 추가, 임시 유저 정보 저장, CA 생성
 #--------------------------------------------------------------------------
-if [ "$checkuser" -eq "0" ]; then
-
+if [ "$checkuser" == "userNotExist" ]; then
+  echo ""
   echo "***Post processing for temporary user************************"
 
   masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-  sshpass -p $masterpass scp -pv $PWD/cleanResources.sh ubuntu@$server:/home/ubuntu/cleanResources.sh &> /dev/null
+  sshpass -p $masterpass scp -o StrictHostKeyChecking=no -pv $PWD/cleanResources.sh ubuntu@$server:/home/ubuntu/cleanResources.sh &> /dev/null
 
   if [[ -z "${ssh_user}" || -z "${ssh_ca_role}" ]]; then 
+    # OTP 만 발행
     masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-    sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN &> /dev/null
-
+    sshpass -p $masterpass ssh -o StrictHostKeyChecking=no ubuntu@$server "bash -s" -- < $PWD/addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $APP_TOKEN &> /dev/null
   else
+    # OTP 와 CA 발행
     echo 'Proceed with the CA Sign process for the temporary user..CaRole : ${ssh_ca_role} ,CaUser : "${ssh_user}'
     masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-    sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $VAULT_TOKEN -u $ssh_user -h $ssh_ca_role &> /dev/null
+    sshpass -p $masterpass ssh -o StrictHostKeyChecking=no ubuntu@$server "bash -s" -- < $PWD/addUserToRemoteServer.sh -n $username -v $server -g $group -t $duration -r $VAULT_ADDR -k $APP_TOKEN -u $ssh_user -h $ssh_ca_role &> /dev/null
   fi
 
   if [ ! $? == "0" ]; then
@@ -282,11 +273,9 @@ if [ "$checkuser" -eq "0" ]; then
       echo "  success to add a new temporary user to target server - server: $server, username: $username"
   fi
 
-  echo ""
-  echo ""	 
-  echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_${servername}_${username} ip=$server"
-  echo "Try : ssh $username@$server" 
-
+  # OTP 접속을 위한 masterpass 발행 및 결과 Print
+  masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_role_${servername}_${username}" "$server") 
+  echo "Try : sshpass -p $masterpass ssh $username@$server" 
   if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then
     echo "Trying.... ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@<SSH_SERVER_IP> => ${ssh_ca_role}_allowed_servers"
   fi
@@ -296,12 +285,13 @@ if [ "$checkuser" -eq "0" ]; then
 #--------------------------------------------------------------------------
 #  유저가 존재하는 경우 - CA 만 설정
 #--------------------------------------------------------------------------
-else 
+else
+  echo ""
   echo "***Post processing for exist user************************"
 
   if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then # SSH CA 설정이 필요한 경우
     masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_key_role" "$server") 
-    sshpass -p $masterpass ssh ubuntu@$server "bash -s" -- < ./signCAToExistUser.sh -n $username -v $server -r $VAULT_ADDR -k $VAULT_TOKEN -u $ssh_user -h $ssh_ca_role &> /dev/null
+    sshpass -p $masterpass ssh -o StrictHostKeyChecking=no ubuntu@$server "bash -s" -- < $PWD/signCAToExistUser.sh -n $username -v $server -r $VAULT_ADDR -k $APP_TOKEN -u $ssh_user -h $ssh_ca_role &> /dev/null
 
     if [ ! $? == "0" ]; then
         echo "Failed to sign CA to exist user - server: $server, username: $username"
@@ -312,10 +302,9 @@ else
     fi
   fi
 
-  echo ""
-  echo ""	 
-  echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_${servername}_${username} ip=$server"
-  echo "Try : ssh $username@$server" 
+  # OTP 접속을 위한 masterpass 발행 및 결과 Print
+  masterpass=$(vault-get-ssh-cred "ssh-client-onetime-pass/creds/otp_role_${servername}_${username}" "$server") 
+  echo "Try : sshpass -p $masterpass ssh $username@$server" 
   if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then
     echo "Try : ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@<SSH_SERVER_IP> => ${ssh_ca_role}_allowed_servers"
   fi
