@@ -190,7 +190,7 @@ done
 #--------------------------------------------------------------------------
 approle_duration=$(( duration + 10 )) 
 approle_duration="${approle_duration}m"
-export VAULT_ADDR=${VAULT_ADDR:-http://172.31.44.220:8200}
+export VAULT_ADDR=${VAULT_ADDR:-http://internal-poc-vault-alb-1279828201.ap-northeast-2.elb.amazonaws.com:443}
 export APP_TOKEN=$(vault-approle-login "$username" "${approle_duration}")
 export VAULT_TOKEN=$APP_TOKEN
 
@@ -288,7 +288,7 @@ if [ "$checkuser" -eq "0" ]; then
   echo "Try : ssh $username@$server" 
 
   if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then
-    echo "Trying.... ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@172.31.43.32 => ${ssh_ca_role}_allowed_servers"
+    echo "Trying.... ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@<SSH_SERVER_IP> => ${ssh_ca_role}_allowed_servers"
   fi
 
   echo "Vaildation : $duration"
@@ -317,6 +317,6 @@ else
   echo "Try : vault write ssh-client-onetime-pass/creds/otp_role_${servername}_${username} ip=$server"
   echo "Try : ssh $username@$server" 
   if ! [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then
-    echo "Try : ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@172.31.43.32 => ${ssh_ca_role}_allowed_servers"
+    echo "Try : ssh -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user}_cert.pub -i ~/.ssh/id_rsa_${ssh_ca_role}_${ssh_user} ${ssh_user}@<SSH_SERVER_IP> => ${ssh_ca_role}_allowed_servers"
   fi
 fi
