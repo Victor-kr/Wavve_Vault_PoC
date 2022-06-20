@@ -42,7 +42,7 @@
 
 ### 포트
 
-서버 관련 포트 작업
+- 서버 관련 포트 작업
 
 |Source|Destination|port|protocol|Direction|Purpose|
 |------|---|---|---|---|---|
@@ -53,20 +53,20 @@
 |Consul and Vault servers|Consul servers|8300|tcp|incoming|Consul server RPC|
 |Consul and Vault servers|Consul and Vault servers|8301|tcp, udp|bidirectional|Consul LAN gossip|
 
-테스트 서버 관련 포트 작업
+- 테스트 서버 관련 포트 작업
 
 |Source|Destination|port|protocol|Direction|Purpose|
 |------|---|---|---|---|---|
 |admin|bastion|22|SSH|incoming|Linux 테스트 서버 SSH 접근허용|
 |bastion|SSH server|22|SSH|incoming|Linux 테스트 서버 SSH 접근허용|
 
-윈도우 테스트 서버 관련 포트 작업
+- 윈도우 테스트 서버 관련 포트 작업
 
 |Source|Destination|port|protocol|Direction|Purpose|
 |------|---|---|---|---|---|
 |client|server|5985,5986|WinRM|incoming|Windows 테스트 서버 원격 접근허용| 
 
-Target Group 설정
+- Target Group 설정시 포트 설정 및 Health Check Path
 
 ```
  Protocol : HTTP
@@ -74,12 +74,11 @@ Target Group 설정
  health Check Path : /v1/sys/health
 ```
 
-Load Balancer 설정
-
-- Internet Facing Load Balancer 와 Private IP 를 연결하는 경우  설정
-  - NAT Gateway 를 Private Subnet Association 된 라우팅에 추가
-  - 라우트 룰에 Destination : 0.0.0.0/0 , Target : natgateway 추가
-- ALB 시큐리티 그룹에 아래와 같이 설정 필요
+- Load Balancer 설정
+  - Internet Facing Load Balancer 와 Private IP 를 연결하는 경우  설정
+    - NAT Gateway 를 Private Subnet Association 된 라우팅에 추가
+    - 라우트 룰에 Destination : 0.0.0.0/0 , Target : natgateway 추가
+  - ALB 시큐리티 그룹에 아래와 같이 설정 필요
 
 |Source|Destination|port|protocol|Direction|Purpose|
 |------|---|---|---|---|---|
