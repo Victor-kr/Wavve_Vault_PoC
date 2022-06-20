@@ -32,7 +32,7 @@ function vault-get-secret() {
 function vault-delete-secret() {
   path="$1"
   shift
-  curl \
+  curl -k \
       --silent \
       --request DELETE \
       --header 'Accept: application/json'  \
@@ -44,7 +44,7 @@ function vault-delete-role() {
   rolepath="$1"
   shift
 
-  curl \
+  curl -k \
       --silent \
       --request DELETE \
       --header 'Accept: application/json'  \
@@ -55,7 +55,7 @@ function vault-delete-role() {
 function vault-get-role-id() {
   path="$1"
   shift
-  res=$(curl \
+  res=$(curl -k \
       --silent \
       --request GET \
       --header 'Accept: application/json'  \
@@ -67,7 +67,7 @@ function vault-get-role-id() {
 function vault-get-role-secret-id() {
   path="$1"
   shift
-  res=$(curl \
+  res=$(curl -k \
       --silent \
       --request POST \
       --header 'Accept: application/json'  \
@@ -92,7 +92,7 @@ function vault-approle-login() {
     --arg secret_id $secret_id  \
     '{"role_id": $ARGS.named["role_id"],"secret_id": $ARGS.named["secret_id"]}' > "${payload}"
  
-  curl \
+  curl -k \
     --silent \
     --request POST \
     --data @"${payload}" \
@@ -117,7 +117,7 @@ function create-ssh-key() {
   sudo rm -rf "${key_file}.pub"
   sudo rm -rf "${key_file}_cert.pub" 
 
-  ssh-keygen -t rsa-sha2-256 -N "" -C "${ssh_user}" -f "${key_file}"
+  sudo ssh-keygen -t rsa-sha2-256 -N "" -C "${ssh_user}" -f "${key_file}"
 
   sudo chown "${username}:${group}" "${key_file}"
   sudo chown "${username}:${group}" "${key_file}.pub"
@@ -149,7 +149,7 @@ function vault-sign-ssh-key() {
     --arg valid_principals "$ssh_user" \
     '{"public_key": $ARGS.named["public_key"],"valid_principals": $ARGS.named["valid_principals"]}' > "${payload}"
 
-  res=$(curl \
+  res=$(curl -k \
     --silent \
     --request POST \
     --header "X-Vault-Token: ${VAULT_TOKEN}" \
@@ -161,7 +161,7 @@ function vault-sign-ssh-key() {
   res=${res%$'\n'} #후행 줄바꿈 제거
   res=${res/%??/} #후행 줄바꿈 문자 제거
 
-  echo $res | tee "${key_file}_cert.pub" 
+  echo $res | sudo tee "${key_file}_cert.pub" 
   sudo chown "${username}:${group}" "${key_file}_cert.pub"
   sudo chmod 400 "${key_file}_cert.pub" 
 
@@ -222,36 +222,27 @@ for program in "${programs[@]}"; do
   if which "${program}" >/dev/null; then
     echo "${program} already installed" 
   else
-    if command -v apt >/dev/null; then
-      sudo apt update 
-      sudo apt install -y "${program}"
-    elif command -v apt-get >/dev/null; then
-      sudo apt-get update 
-      sudo apt-get install -y "${program}"
-    elif command -v yum >/dev/null; then
-      sudo yum install -y "${program}"
-    fi
+    echo "${program} is not installed. please install this package.."
   fi
 done
-
 
 #---------------------------------------------------------------
 # Write user information to vault
 #---------------------------------------------------------------
-export VAULT_ADDR="${vault_addr:-http://172.31.44.220:8200}"
-export VAULT_TOKEN="${vault_token:-hvs.zpu3IwU6OyNBg7iDN8DbWb3K}"
+export VAULT_ADDR="${vault_addr}"
+export VAULT_TOKEN="${vault_token}"
 
-groups=($(id -Gn ubuntu))
-group=$(echo ${groups[0]})
-directory=$(awk -F: -v v="${name}" '{if ($1==v) print $6}' /etc/passwd)
-if ! [ -d "$directory" ]; then 
+directory=$(eval echo ~${name})
+group=$(getent group ${name}  | cut -d: -f1)
+
+if [ ! -d "$directory/.ssh" ]; then 
   sudo mkdir -p "${directory}/.ssh" 
   sudo chown "${name}:${group}" "${directory}"
   sudo chown "${name}:${group}" "${directory}/.ssh" 
   sudo chmod 777 "${directory}/.ssh"
 fi
 
-echo 'Checking CA Process : ${ssh_ca_role} ,CaUser : "${ssh_user}'
+echo "Checking CA Process : ${ssh_ca_role} ,CaUser : ${ssh_user}"
 create-ssh-key "${name}" "${group}" "${directory}" "${ssh_ca_role}" "${ssh_user}"
 vault-sign-ssh-key "${name}" "${group}" "${directory}" "${ssh_ca_role}" "${ssh_user}"
 
