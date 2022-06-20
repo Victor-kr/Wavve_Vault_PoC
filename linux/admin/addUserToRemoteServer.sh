@@ -117,7 +117,7 @@ function create-ssh-key() {
   sudo rm -rf "${key_file}.pub"
   sudo rm -rf "${key_file}_cert.pub" 
 
-  ssh-keygen -t rsa-sha2-256 -N "" -C "${ssh_user}" -f "${key_file}"
+  sudo ssh-keygen -t rsa-sha2-256 -N "" -C "${ssh_user}" -f "${key_file}"
 
   sudo chown "${username}:${group}" "${key_file}"
   sudo chown "${username}:${group}" "${key_file}.pub"
@@ -161,7 +161,7 @@ function vault-sign-ssh-key() {
   res=${res%$'\n'} #후행 줄바꿈 제거
   res=${res/%??/} #후행 줄바꿈 문자 제거
 
-  echo $res | tee "${key_file}_cert.pub" 
+  echo $res | sudo tee "${key_file}_cert.pub" 
   sudo chown "${username}:${group}" "${key_file}_cert.pub"
   sudo chmod 400 "${key_file}_cert.pub" 
 
