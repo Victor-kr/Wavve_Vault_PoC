@@ -10,5 +10,6 @@
     ],
     "key_type": "ca",
     "default_user": "ubuntu",
-    "ttl": "24h"
+    "ttl": "24h",
+    "max_ttl": "24h"    
 }
