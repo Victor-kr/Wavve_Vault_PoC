@@ -6,19 +6,8 @@ Admin Server 에서 BationHost 에 접근 후 신규 유저를 생성 하고 SSH
 ```console  
 $ export VAULT_ADDR="http://internal-poc-vault-alb-1279828201.ap-northeast-2.elb.amazonaws.com:443"
 $ curl -s --request POST --data '{"password": "linuxadmin"}' $VAULT_ADDR/v1/auth/userpass/login/linuxadmin | jq .auth.client_token
- 
-Key                    Value
----                    -----
-token                  hvs.CAESIJHL3EBy01oB7Lq2MJ5u2r9AxCRo76bJxwg_nF6rW_8RGh4KHGh2cy5NTHg3dWlpbjhzcVFzY01OeFhCYmx1czk
-token_accessor         ifowHRSNXjgdUKQ97cBCcg18
-token_duration         768h
-token_renewable        true
-token_policies         ["admin-policy" "default"]
-identity_policies      []
-policies               ["admin-policy" "default"]
-token_meta_username    linuxadmin
-
-$ export VAULT_TOKEN="hvs.CAESIJHL3EBy01oB7Lq2MJ5u2r9AxCRo76bJxwg_nF6rW_8RGh4KHGh2cy5NTHg3dWlpbjhzcVFzY01OeFhCYmx1czk"
+"hvs.CAESIOtqS5YmWjSEpRXPORzbeIjS4nDdBntyPPt-74D9Ozy2Gh4KHGh2cy5LTjV6QU44Zkw4R0NMYlZ1STlFUDlLWTI"
+$ export VAULT_TOKEN="hvs.CAESIOtqS5YmWjSEpRXPORzbeIjS4nDdBntyPPt-74D9Ozy2Gh4KHGh2cy5LTjV6QU44Zkw4R0NMYlZ1STlFUDlLWTI"
 ```
 
 Admin Server 에서 BationHost 에 접근 후 신규 유저를 생성 하고 SSH 접속을 위한 정보를 얻어낸 후 클라이언트에 전달하면 된다.
