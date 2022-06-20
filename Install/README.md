@@ -65,7 +65,7 @@ $ curl $VAULT_ADDR/v1/sys/health
 |Source|Destination|port|protocol|Direction|Purpose|
 |------|---|---|---|---|---|
 |admin|bastion|22|SSH|incoming|Linux 테스트 서버 SSH 접근허용|
-|bastion|SSH server|SSH|tcp|Linux 테스트 서버 SSH 접근허용|
+|bastion|SSH server|22|SSH|incoming|Linux 테스트 서버 SSH 접근허용|
 
 윈도우 테스트 서버 관련 포트 작업
 
