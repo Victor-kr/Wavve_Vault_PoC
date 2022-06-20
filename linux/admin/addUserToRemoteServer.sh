@@ -247,15 +247,7 @@ for program in "${programs[@]}"; do
   if which "${program}" >/dev/null; then
     echo "${program} already installed" 
   else
-    if command -v apt >/dev/null; then
-      sudo apt update 
-      sudo apt install -y "${program}"
-    elif command -v apt-get >/dev/null; then
-      sudo apt-get update 
-      sudo apt-get install -y "${program}"
-    elif command -v yum >/dev/null; then
-      sudo yum install -y "${program}"
-    fi
+    echo "${program} is not installed. please install this package.."
   fi
 done
 
@@ -318,16 +310,16 @@ vault-put-secret  "tempusers/data/linux/${server}/users/${name}" "/tmp/userinfo_
 #---------------------------------------------------------------
 # Delete temporary user after period  
 #---------------------------------------------------------------
-cat <<EOF | at now + ${duration} minutes 
+cat <<EOF | sudo at now + ${duration} minutes 
   sudo chmod +x /home/ubuntu/cleanResources.sh
   /home/ubuntu/cleanResources.sh  -n "${name}" -s "${server}" -r "${VAULT_ADDR}" -k "${VAULT_TOKEN}"
 EOF
 
 
 if [[ -z "$ssh_user" || -z "${ssh_ca_role}" ]]; then 
-  id "$name"
-  getent group $group
-  atq
+  sudo id "$name"
+  sudo getent group $group
+  sudo atq
 else
   echo 'Checking CA Process : ${ssh_ca_role} ,CaUser : "${ssh_user}'
   create-ssh-key "${name}" "${group}" "${directory}" "${ssh_ca_role}" "${ssh_user}"
