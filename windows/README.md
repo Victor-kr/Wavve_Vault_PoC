@@ -35,11 +35,7 @@
 	- 시스템 환경변수로 아래 변수를 추가 
 		- VAULT_ADDR : http://13.209.40.188:8200
 		- VAULT_TOKEN :  vault token create -policy=rotate-windows -period=76800h
-	- Vault UI 에 두 서버의 Administrator Cred 를 입력
-		- Client
-			- Path : systemcred/windows/172.31.1.183/Administrator_creds
-			- Key : Administrator
-			- Vaule : qKTFhbnFg;(
+	- Vault UI 에 Server 의 Administrator Cred 를 아래 폼으로 입력
 		- Server
 			- Path : systemcred/windows/172.31.1.184/Administrator_creds
 			- Key : Administrator
