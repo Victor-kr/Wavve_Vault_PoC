@@ -43,4 +43,4 @@
 - Windows Server
 	- C:\Wavve\server\renewPassServer.ps1 파일 붙여넣기 
 - Windows Client
-	- C:\wavePOC-master\client\RenewPassClient.bat 파일 실행
+	- C:\Wavve\client\RenewPassClient.bat 파일 실행
