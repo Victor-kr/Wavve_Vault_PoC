@@ -339,7 +339,7 @@ $lbInput.Size = New-Object System.Drawing.Size(95,22)
 $lbInput.Text = "Server Name"
 $lbInput.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter 
 
-$serverList = Get-Content  "C:\Powershell\serverList.txt"
+$serverList = Get-Content  "${savedPath}\serverList.txt"
 $servers = $serverList.Split(" ")
 
 
