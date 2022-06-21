@@ -30,7 +30,7 @@
 - Windows  공통설정
 	- 방화벽 Off
 	- 두 호스트 간 Ping
-	- C:\wavePOC-master\Config.ps1 실행
+	- C:\Wavve\Config.ps1 실행
 		- 리모트 연결을 활성화
 	- 시스템 환경변수로 아래 변수를 추가 
 		- VAULT_ADDR : http://13.209.40.188:8200
@@ -41,18 +41,6 @@
 			- Key : Administrator
 			- Vaule : lE8fMoJ05D2oqAr499D43FTBWszjDaeWMsm7
 - Windows Server
-	- Schedule Task 
-		- General
-			- Name : RegenPassword
-			- Security Options :  Users
-		- Trigger : At log on
-		- Actions
-			- Action
-				- Start a program
-			- Settings
-				- Program/script
-					- C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-				- Argument
-					- -ExecutionPolicy Unrestricted -File "C:\wavePOC-master\server\renewPassServer.ps1"
+	- C:\Wavve\server\renewPassServer.ps1 파일 붙여넣기 
 - Windows Client
 	- C:\wavePOC-master\client\RenewPassClient.bat 파일 실행
